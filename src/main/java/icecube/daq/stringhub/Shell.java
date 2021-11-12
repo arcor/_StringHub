@@ -1,5 +1,6 @@
 package icecube.daq.stringhub;
 
+import icecube.daq.common.DAQCmdInterface;
 import icecube.daq.juggler.component.DAQCompServer;
 
 import java.io.PrintWriter;
@@ -16,6 +17,9 @@ import org.apache.log4j.PatternLayout;
  */
 public class Shell
 {
+
+	public static final Logger logger = Logger.getLogger(Shell.class);
+
 	public static void main(String[] args) throws Exception
 	{
 		ConsoleAppender appender = new ConsoleAppender();
@@ -34,6 +38,14 @@ public class Shell
 		{
 			System.err.println("Component Id not set - specify with -Dicecube.daq.stringhub.componentId=X");
 			System.exit(1);
+		}
+
+		try {
+			String compFullName = String.format("%s#%d", DAQCmdInterface.DAQ_STRING_HUB, hubId);
+			DAQCompServer.primordialLogConfigure(compFullName, args);
+		} catch (Exception e) {
+			// fall back to console
+			logger.error("Could not configure logging", e);
 		}
 
 		DAQCompServer srvr;
