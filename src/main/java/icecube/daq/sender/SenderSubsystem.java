@@ -13,13 +13,11 @@ import icecube.daq.performance.binary.record.pdaq.DaqBufferRecordReader;
 import icecube.daq.performance.binary.store.RecordStore;
 import icecube.daq.performance.common.PowersOfTwo;
 import icecube.daq.spool.FilesHitSpool;
-import icecube.daq.spool.etl.OverrideHitspoolConfig;
 import icecube.daq.util.IDOMRegistry;
 import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.SQLException;
 
 import static icecube.daq.performance.binary.store.RecordStoreFactory.*;
 
@@ -322,7 +320,7 @@ public interface SenderSubsystem
         /** Default interval for each hitspool file (in seconds) */
         public static final double DEFAULT_HITSPOOL_INTERVAL = 15.0;
         /** Maximum number of hitspool files */
-        public static final int DEFAULT_HITSPOOL_MAXFILES = 36000;
+        public static final int DEFAULT_HITSPOOL_MAXFILES = 72000;
 
         public final File directory;
         public final double fileInterval;
@@ -377,16 +375,7 @@ public interface SenderSubsystem
                 }
             }
 
-            HitSpoolConfig requested = new HitSpoolConfig(new File(directory), interval, numFiles);
-
-            // NOTE: The 2021 OS upgrade introduces a novel hitspool look-back expansion
-            //       implemented as a heuristic override to the hitspool configuration
-            //       requested by CnC
-            try {
-                return OverrideHitspoolConfig.overrideHook(requested);
-            } catch (IOException | SQLException e) {
-                throw new Error("Error running hitspool config override hook", e);
-            }
+            return new HitSpoolConfig(new File(directory), interval, numFiles);
         }
 
     }
