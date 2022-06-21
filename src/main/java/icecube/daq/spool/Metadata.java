@@ -2,6 +2,7 @@ package icecube.daq.spool;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -40,14 +41,52 @@ public class Metadata
     private PreparedStatement rangeQueryStmt;
     private PreparedStatement contentQueryStmt;
 
-    public Metadata(File directory)
-        throws SQLException
+    // hitspool_cfg table
+    // tags the singular configuration record
+    public static final String CONFIG_RECORD_KEY = "2021_UPGRADE";
+    private static final String CONFIG_TABLE_CREATE_SQL = "create table hitspool_cfg(" +
+            "id text text primary key," +
+            "interval integer, num_files integer)";
+    private static final String CONFIG_TABLE_QUERY_SQL = "select * from hitspool_cfg where id=?";
+    private static final String CONFIG_TABLE_INSERT_SQL = "insert into hitspool_cfg(id, interval, num_files)" +
+            " values (?,?,?)";
+
+
+    //default auto-create is protected until it is not the default
+     Metadata(File directory)
+            throws SQLException
+    {
+        this(directory, FILENAME);
+    }
+
+    public Metadata(File directory, boolean autocreate)
+            throws SQLException
+    {
+        this(directory, FILENAME, autocreate);
+    }
+
+    //default auto-create is protected until it is not the default
+     Metadata(final File directory, final String databaseFile)
+            throws SQLException
+    {
+        this(directory, databaseFile, true);
+    }
+
+    public Metadata(final File directory, final String databaseFile, final boolean autoCreate)
+            throws SQLException
     {
         if (!loadedSQLite) {
             LOG.error("SQLite driver is unavailable, not updating metadata");
         }
 
-        final File dbFile = new File(directory, FILENAME);
+
+        final File dbFile = new File(directory, databaseFile);
+
+        if(!autoCreate && !Files.exists(dbFile.toPath()))
+        {
+            throw new SQLException(String.format("Spool database [%s] does not exist", dbFile.getAbsolutePath()));
+        }
+
         final String jdbcURL = "jdbc:sqlite:" + dbFile;
         conn = DriverManager.getConnection(jdbcURL);
 
@@ -105,7 +144,7 @@ public class Metadata
         try {
             contentQueryStmt.close();
         } catch (SQLException se) {
-            LOG.error("Failed to close selct statement", se);
+            LOG.error("Failed to close select statement", se);
         }
 
         try {
@@ -123,6 +162,110 @@ public class Metadata
                            "filename text primary key not null," +
                            "start_tick integer, stop_tick integer)");
         stmt.close();
+    }
+
+    public void createConfigTable()
+            throws SQLException
+    {
+        Statement stmt = conn.createStatement();
+        stmt.executeUpdate(CONFIG_TABLE_CREATE_SQL);
+        stmt.close();
+    }
+
+    public boolean hasConfigTable() throws SQLException
+    {
+        PreparedStatement ps = conn.prepareStatement("SELECT count(*) FROM sqlite_master WHERE type=? AND name=?");
+        ps.setString(1,"table");
+        ps.setString(2,"hitspool_cfg");
+
+        ResultSet rs = ps.executeQuery();
+        rs.next();
+        boolean found = (rs.getInt(1) == 1);
+
+        rs.close();
+        ps.close();
+
+        return found;
+
+    }
+
+    public void setConfig(long interval, int numFiles) throws SQLException
+    {
+        PreparedStatement ps = conn.prepareStatement(CONFIG_TABLE_INSERT_SQL);
+        try {
+            ps.setString(1, CONFIG_RECORD_KEY);
+            ps.setLong(2, interval);
+            ps.setInt(3, numFiles);
+            ps.executeUpdate();
+        } catch (SQLException se) {
+            LOG.error("Cannot insert config (interval: " + interval +
+                    " num_files: " + numFiles + ")", se);
+        }
+        finally {
+            if(ps != null)
+            {
+                try
+                {
+                    ps.close();
+                }
+                catch (SQLException se)
+                {
+                    LOG.error("Error closing PreparedStatement", se);
+                }
+            }
+        }
+    }
+
+    public ConfigRecord getConfig() throws SQLException
+    {
+        return this.getConfig(CONFIG_RECORD_KEY);
+    }
+
+    private ConfigRecord getConfig(final String id) throws SQLException
+    {
+        PreparedStatement ps = conn.prepareStatement(CONFIG_TABLE_QUERY_SQL);
+        ResultSet resultSet = null;
+            try
+            {
+                ps.setString(1, id);
+                resultSet = ps.executeQuery();
+
+                if(resultSet.next())
+                {
+                    return new ConfigRecord(resultSet.getString("id"),
+                            resultSet.getLong("interval"),
+                            resultSet.getInt("num_files"));
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            finally
+            {
+                if(resultSet != null)
+                {
+                    try
+                    {
+                        resultSet.close();
+                    }
+                    catch (SQLException se)
+                    {
+                        LOG.error("Error closing ResultSet", se);
+                    }
+                }
+                if(ps != null)
+                {
+                    try
+                    {
+                        ps.close();
+                    }
+                    catch (SQLException se)
+                    {
+                        LOG.error("Error closing PreparedStatement", se);
+                    }
+                }
+            }
     }
 
     public synchronized void updateStop(String filename, long stop_tick)
@@ -284,6 +427,24 @@ public class Metadata
             this.filename = filename;
             this.startTick = startTick;
             this.stopTick = stopTick;
+        }
+    }
+
+    /**
+     * Models a config record.
+     */
+    public static class ConfigRecord
+    {
+        public final String id;
+        public final long interval;
+        public final long num_files;
+
+
+        public ConfigRecord(final String id, final long interval, final long num_files)
+        {
+            this.id = id;
+            this.interval = interval;
+            this.num_files = num_files;
         }
     }
 

@@ -320,14 +320,14 @@ public interface SenderSubsystem
         /** Default interval for each hitspool file (in seconds) */
         public static final double DEFAULT_HITSPOOL_INTERVAL = 15.0;
         /** Maximum number of hitspool files */
-        public static final int DEFAULT_HITSPOOL_MAXFILES = 18000;
+        public static final int DEFAULT_HITSPOOL_MAXFILES = 72000;
 
-        final File directory;
-        final double fileInterval;
-        final int numFiles;
+        public final File directory;
+        public final double fileInterval;
+        public final int numFiles;
 
-        private HitSpoolConfig(final File directory, final double fileInterval,
-                               final int numFiles)
+        public HitSpoolConfig(final File directory, final double fileInterval,
+                              final int numFiles)
         {
             this.directory = directory;
             this.fileInterval = fileInterval;

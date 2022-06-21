@@ -852,6 +852,14 @@ public class ReplayHubComponent
             System.exit(1);
         }
 
+        try {
+            String compFullName = String.format("%s#%d", COMPONENT_NAME, hubId);
+            DAQCompServer.primordialLogConfigure(compFullName, args);
+        } catch (Exception e) {
+            // fall back to console
+            LOG.error("Could not configure logging", e);
+        }
+
         DAQCompServer srvr;
         try {
             srvr = new DAQCompServer(new ReplayHubComponent(hubId), args);
