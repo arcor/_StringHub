@@ -1,5 +1,7 @@
 package icecube.daq.domapp;
 
+import java.util.Arrays;
+
 public class LocalCoincidenceConfiguration
 {
     /**
@@ -166,4 +168,19 @@ public class LocalCoincidenceConfiguration
 	public void setTxMode(TxMode mode) { txMode = mode; }
 
 	public void setType(Type type) { this.type = type; }
+
+	public String prettyPrint(String ident)
+	{
+		return "LocalCoincidenceConfiguration{" + "\n" +
+				ident + "  type            =   " + type + "\n" +
+				ident + "  rxMode          =   " + rxMode + "\n" +
+				ident + "  txMode          =   " + txMode + "\n" +
+				ident + "  source          =   " + source + "\n" +
+				ident + "  preTrigger      =   " + preTrigger + "\n" +
+				ident + "  postTrigger     =   " + postTrigger + "\n" +
+				ident + "  cableLengthUp   =   " + Arrays.toString(cableLengthUp) + "\n" +
+				ident + "  cableLengthDn   =   " + Arrays.toString(cableLengthDn) + "\n" +
+				ident + "  span            =   " + span + "\n" +
+				ident + '}';
+	}
 }

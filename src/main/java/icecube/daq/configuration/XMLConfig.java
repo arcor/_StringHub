@@ -1,14 +1,7 @@
 /* -*- mode: java; indent-tabs-mode:t; tab-width:4 -*- */
 package icecube.daq.configuration;
 
-import icecube.daq.domapp.AtwdChipSelect;
-import icecube.daq.domapp.BadEngineeringFormat;
-import icecube.daq.domapp.DOMConfiguration;
-import icecube.daq.domapp.EngineeringRecordFormat;
-import icecube.daq.domapp.LocalCoincidenceConfiguration;
-import icecube.daq.domapp.MuxState;
-import icecube.daq.domapp.PulserMode;
-import icecube.daq.domapp.TriggerMode;
+import icecube.daq.domapp.*;
 
 import java.io.InputStream;
 import java.util.HashMap;
@@ -78,14 +71,48 @@ public class XMLConfig extends DefaultHandler
 
 		if (localName.equals("triggerMode"))
 		{
-			if (text.equals("forced"))
-				currentConfig.setTriggerMode(TriggerMode.FORCED);
-			else if (text.equals("spe"))
-				currentConfig.setTriggerMode(TriggerMode.SPE);
-			else if (text.equals("mpe"))
-				currentConfig.setTriggerMode(TriggerMode.MPE);
-			else if (text.equals("flasher"))
-				currentConfig.setTriggerMode(TriggerMode.FB);
+			TriggerMode mode = TriggerMode.resolve(text);
+			if(mode != null)
+			{
+				currentConfig.setTriggerMode(mode);
+			}
+			else
+			{
+				throw new SAXException(String.format("Unrecognized trigger mode: [%s]", text));
+			}
+		}
+		else if (localName.equals("altTriggerMode"))
+		{
+
+				final TriggerMode mode = TriggerMode.resolve(text);
+				if(mode != null)
+				{
+					currentConfig.setAltTriggerMode(mode);
+				}
+				else
+				{
+					throw new SAXException(String.format("unrecognized alt trigger mode: [%s]", text));
+				}
+		}
+		else if (localName.equals("daqMode"))
+		{
+			final DAQMode mode = DAQMode.resolve(text);
+			if(mode != null)
+			{
+				currentConfig.setDaqMode(mode);
+			}
+			else
+			{
+				throw new SAXException(String.format("unrecognized daq mode: [%s]", text));
+			}
+		}
+		else if (localName.equals("mainboardLED"))
+		{
+			if (text.equals("on"))
+				currentConfig.setMainboardLED(true);
+			else if (text.equals("off"))
+				currentConfig.setMainboardLED(false);
+			else throw new SAXException(String.format("unrecognized mainboard led: [%s]", text));
 		}
 		else if (localName.equals("pmtHighVoltage"))
 		{
@@ -149,6 +176,10 @@ public class XMLConfig extends DefaultHandler
 			}
 		}
 		else if (localName.equals("localCoincidence"))
+		{
+			internalState = ParserState.DOM_CONFIG;
+		}
+		else if (localName.equals("selfLocalCoincidence"))
 		{
 			internalState = ParserState.DOM_CONFIG;
 		}
@@ -266,9 +297,28 @@ public class XMLConfig extends DefaultHandler
 				else
 					currentConfig.getLC().setCableLengthUp(delayDistance - 1, Short.parseShort(text));
 			}
-			else if (localName.equals("localCoincidence"))
+		}
+		else if (internalState == ParserState.SELF_LOCAL_COINCIDENCE)
+		{
+			if (localName.equals("mode"))
 			{
-				internalState = ParserState.DOM_CONFIG;
+				if (text.equals("mpe")) {
+					currentConfig.getSelfLC().setMode(SelfLCConfiguration.SelfLCMode.SELF_LC_MODE_MPE);
+				}
+				else if (text.equals("spe")) {
+					currentConfig.getSelfLC().setMode(SelfLCConfiguration.SelfLCMode.SELF_LC_MODE_SPE);
+				}
+				else if (text.equals("none")) {
+					currentConfig.getSelfLC().setMode(SelfLCConfiguration.SelfLCMode.SELF_LC_MODE_NONE);
+				}
+				else {
+					throw new SAXException(String.format("unrecognized self lc mode: [%s]", text));
+				}
+
+			}
+			else if (localName.equals("window"))
+			{
+				currentConfig.getSelfLC().setWindow(Integer.parseInt(text));
 			}
 		}
 		else if (localName.equals("deadtime"))
@@ -283,6 +333,10 @@ public class XMLConfig extends DefaultHandler
 			else
 				spe = false;
 			currentConfig.setSupernovaSpe(spe);
+		}
+		else if (localName.equals("scalerDeadtime"))
+		{
+			currentConfig.setScalerDeadtime(Integer.parseInt(text));
 		}
 		else if (localName.equals("hardwareMonitorInterval"))
 		{
@@ -349,6 +403,10 @@ public class XMLConfig extends DefaultHandler
 		else if (localName.equals("localCoincidence"))
 		{
 			internalState = ParserState.LOCAL_COINCIDENCE;
+		}
+		else if (localName.equals("selfLocalCoincidence"))
+		{
+			internalState = ParserState.SELF_LOCAL_COINCIDENCE;
 		}
 		else if (localName.equals("chargeHistogram"))
 		{
@@ -440,5 +498,5 @@ public class XMLConfig extends DefaultHandler
 
 enum ParserState
 {
-	INIT, DOM_CONFIG, LOCAL_COINCIDENCE, CHARGE_HISTOGRAM
+	INIT, DOM_CONFIG, LOCAL_COINCIDENCE, CHARGE_HISTOGRAM, SELF_LOCAL_COINCIDENCE
 };

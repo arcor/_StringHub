@@ -1,12 +1,6 @@
 package icecube.daq.domapp.dataacquisition;
 
-import icecube.daq.domapp.DOMApp;
-import icecube.daq.domapp.DOMConfiguration;
-import icecube.daq.domapp.LocalCoincidenceConfiguration;
-import icecube.daq.domapp.MessageException;
-import icecube.daq.domapp.MessageType;
-import icecube.daq.domapp.PulserMode;
-import icecube.daq.domapp.TriggerMode;
+import icecube.daq.domapp.*;
 import icecube.daq.domapp.dataprocessor.DataProcessor;
 import icecube.daq.domapp.dataprocessor.DataProcessorError;
 import icecube.daq.domapp.dataprocessor.DataStats;
@@ -22,7 +16,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A collection of methods that handle data acquisition
@@ -127,6 +123,47 @@ public class DataAcquisition
                 logger.debug("Configuring DOM on " + canonicalName());
             }
             long configT0 = System.currentTimeMillis();
+
+
+            // Proactively enforce extended mode (Domapp should duplicate enforcement)
+            HashMap<String, String> violations = new HashMap<>();
+            final boolean extendedMode = ExtendedMode.isExtendedModeEnable();
+            if(!extendedMode && config.requiresExtendedMode(violations))
+            {
+                StringBuilder sb = new StringBuilder();
+                for(Map.Entry<String, String> v : violations.entrySet())
+                {
+                    sb.append(v.getKey()).append(":").append(v.getValue()).append("\n");
+                }
+
+                if(ExtendedMode.enforce())
+                {
+                    String msg = String.format("DOM config for %s requires extended mode flag, set %s=false to override%n%s",
+                            id, ExtendedMode.ENFORCE_OVERRIDE_KEY, sb.toString());
+
+                    throw new AcquisitionError(msg);
+                }
+                else
+                {
+
+                    String msg = String.format("DOM config for %s requires extended mode flag, enforcement overridden by %s=false," +
+                                    " will attempt to configure DOM%n%s",
+                            id, ExtendedMode.ENFORCE_OVERRIDE_KEY, sb.toString());
+
+                    logger.error(msg);
+                }
+            }
+
+            if(extendedMode)
+            {
+                logger.warn("Enabling Extended Mode on " + this.id);
+                app.enableExtendedMode();
+            }
+            else
+            {
+                app.disableExtendedMode();
+            }
+
 
             app.setMoniIntervals(
                     config.getHardwareMonitorInterval(),
@@ -244,6 +281,20 @@ public class DataAcquisition
                 logger.warn("Unable to configure chargestamp histogramming");
             }
 
+            app.setDAQMode(config.getDaqMode());
+            app.setAltTriggerMode(config.getAltTriggerMode());
+            app.setSelfLCMode(config.getSelfLC().getMode());
+            app.setSelfLCWindow(config.getSelfLC().getWindow());
+
+            boolean mainboardLEDOn = config.getMainboardLEDOn();
+            if(mainboardLEDOn)
+            {
+                app.mainboardLEDOn();
+            }
+            else
+            {
+                app.mainboardLEDOff();
+            }
 
             if (logger.isDebugEnabled()) {
                 long configT1 = System.currentTimeMillis();

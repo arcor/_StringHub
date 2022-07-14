@@ -6,12 +6,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import icecube.daq.common.MockAppender;
-import icecube.daq.domapp.AtwdChipSelect;
-import icecube.daq.domapp.DOMConfiguration;
-import icecube.daq.domapp.LocalCoincidenceConfiguration;
-import icecube.daq.domapp.TriggerMode;
+import icecube.daq.domapp.*;
 
 import java.io.InputStream;
+import java.util.HashMap;
 
 import junit.framework.JUnit4TestAdapter;
 
@@ -25,7 +23,7 @@ public class XMLConfigTest
 	private static final MockAppender appender = new MockAppender();
 
 	private XMLConfig xmlConfig;
-	private DOMConfiguration config, config2;
+	private DOMConfiguration config, config2, config3;
 	
 	/**
 	 * This should make the tests JUnit 3.8 compatible
@@ -49,6 +47,7 @@ public class XMLConfigTest
 		xmlConfig.parseXMLConfig(xmlIn);
 		config = xmlConfig.getDOMConfig("57bc3f3a220d");
 		config2 = xmlConfig.getDOMConfig("9a0744bca158");
+		config3 = xmlConfig.getDOMConfig("4208dd9ec4ff");
 	}
 
 	@Test public void testGotDOMConfigs() 
@@ -56,6 +55,7 @@ public class XMLConfigTest
 		// look for the dom configs declared
 		assertNotNull(config);
 		assertNotNull(config2);
+		assertNotNull(config3);
 	}
 	
 	@Test public void testFormat()
@@ -118,5 +118,60 @@ public class XMLConfigTest
         assertEquals(122, config2.getAveragePedestal(4));
         assertEquals(132, config2.getAveragePedestal(5));
 	    
+	}
+
+	@Test public void testDaqMode()
+	{
+		// defaults to ATWD_FADC when not present
+		assertEquals(DAQMode.ATWD_FADC, config.getDaqMode());
+		assertEquals(DAQMode.ATWD_FADC, config2.getDaqMode());
+
+		assertEquals(DAQMode.FADC, config3.getDaqMode());
+	}
+
+	@Test public void testAltTrigger()
+	{
+		// defaults to FORCED when not present
+		assertEquals(TriggerMode.FORCED, config.getAltTriggerMode());
+		assertEquals(TriggerMode.FORCED, config2.getAltTriggerMode());
+
+		assertEquals(TriggerMode.LC_DOWN, config3.getAltTriggerMode());
+	}
+
+	@Test public void testSelfLocalCoincidence()
+	{
+        // defaults to NONE when not present
+		assertEquals(SelfLCConfiguration.SelfLCMode.SELF_LC_MODE_NONE, config.getSelfLC().getMode());
+		assertEquals(200, config.getSelfLC().getWindow());
+		assertEquals(SelfLCConfiguration.SelfLCMode.SELF_LC_MODE_NONE, config2.getSelfLC().getMode());
+		assertEquals(200, config2.getSelfLC().getWindow());
+
+
+		SelfLCConfiguration selfLC = config3.getSelfLC();
+		assertEquals(SelfLCConfiguration.SelfLCMode.SELF_LC_MODE_SPE, selfLC.getMode());
+		assertEquals(100, selfLC.getWindow());
+	}
+
+
+	@Test public void testMainboardLED()
+	{
+		// defaults to OFF when not present
+		assertFalse(config.getMainboardLEDOn());
+		assertFalse(config2.getMainboardLEDOn());
+
+		assertTrue(config3.getMainboardLEDOn());
+	}
+
+	@Test public void testExtendedModeRequirements()
+	{
+		assertFalse(config.requiresExtendedMode(new HashMap<>()));
+		assertFalse(config.requiresExtendedMode(new HashMap<>()));
+
+		HashMap<String, String> why = new HashMap<>();
+		assertTrue(config3.requiresExtendedMode(why));
+
+		assertEquals(2, why.size());
+		assertEquals("lc_down", why.get("altTriggerMode"));
+		assertEquals("on", why.get("mainboardLED"));
 	}
 }

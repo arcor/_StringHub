@@ -15,6 +15,7 @@ import icecube.daq.domapp.dataprocessor.GPSProvider;
 import icecube.daq.juggler.alert.Alerter.Priority;
 import icecube.daq.monitoring.IRunMonitor;
 import icecube.daq.time.gps.GPSService;
+import icecube.daq.util.FlasherboardConfiguration;
 import icecube.daq.util.SimpleMovingAverage;
 import icecube.daq.util.StringHubAlert;
 import org.apache.log4j.Logger;
@@ -152,6 +153,11 @@ public class DataCollector extends AbstractDataCollector
 
     /** watchdog */
     private final InterruptorTask watchdog = new InterruptorTask();
+
+    /** In extended mode, flashers can be configured without disabling HV.
+     *  This is not the same as a flasher (sub)run
+     */
+    public FlasherboardConfiguration extendedModeFlasherConfig;
 
 
     // Log acquisition diagnostics when acquisition is aborted by the watchdog
@@ -490,7 +496,42 @@ public class DataCollector extends AbstractDataCollector
                     if (logger.isDebugEnabled()) {
                         logger.debug("Got START RUN signal " + canonicalName());
                     }
-                    runStartUT = dataAcquisition.doBeginRun(watchdog);
+
+                    // support a special enhanced mode whereby flashers are permitted
+                    // with HV enabled
+                    if(extendedModeFlasherConfig != null)
+                    {
+
+                        // Proactively enforce extended mode (Domapp should duplicated enforcement)
+                        if(ExtendedMode.isExtendedModeEnable())
+                        {
+                            logger.warn("Running with flashers and HV enabled for " + mbid);
+                            runStartUT = dataAcquisition.doBeginFlasherRun(extendedModeFlasherConfig);
+                        }
+                        else if(ExtendedMode.enforce())
+                        {
+                            String msg = String.format("Running with flashers and HV enabled for %s requires extended mode flag, set %s=false to override%n",
+                                    mbid, ExtendedMode.ENFORCE_OVERRIDE_KEY);
+
+                            throw new AcquisitionError(msg);
+                        }
+                        else
+                        {
+                            String msg = String.format("Running with flashers and HV enabled for %s requires extended mode flag, enforcement overridden by %s=false," +
+                                            " will attempt to run with flashers enabled DOM%n",
+                                    mbid, ExtendedMode.ENFORCE_OVERRIDE_KEY);
+
+                            logger.error(msg);
+                            logger.warn("Running with flashers and HV enabled for " + mbid);
+                            runStartUT = dataAcquisition.doBeginFlasherRun(extendedModeFlasherConfig);
+                        }
+
+                    }
+                    else
+                    {
+                        runStartUT = dataAcquisition.doBeginRun(watchdog);
+                    }
+
                     logger.debug("DOM is running.");
                     setRunLevelInternal(RunLevel.RUNNING);
                     break;

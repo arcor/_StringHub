@@ -24,6 +24,7 @@ public enum MessageType {
 	DISABLE_HV(2, 18),
 	QUERY_HV(2, 22),
 	SET_TRIG_MODE(2, 31),
+	GET_TRIG_MODE(2, 32),
 	MUX_SELECT(2, 35),
 	GET_MUX_CH(2, 36),
 	SET_PULSER_RATE(2, 37),
@@ -59,7 +60,31 @@ public enum MessageType {
 	
 	/** Enable (1) or disable (0) transmission of MinBias waveforms (1:8192 prescale) */
 	SELECT_MINBIAS(2,62),
-	
+
+	// Self LC modes
+	SET_SELF_LC_MODE(2, 63),
+	GET_SELF_LC_MODE(2, 64),
+	SET_SELF_LC_WINDOW(2, 65),
+	GET_SELF_LC_WINDOW(2, 66),
+
+	// alt trigger
+	SET_ALT_TRIG_MODE(2, 67),
+	GET_ALT_TRIG_MODE(2, 68),
+
+	// daq mode
+	SET_DAQ_MODE(2, 69),
+	GET_DAQ_MODE(2, 70),
+
+	// mainboard LED control
+	SET_MB_LED_ON(2, 71),
+	SET_MB_LED_OFF(2, 72),
+	MB_LED_RUNNING(2, 73),
+
+	// extended mode
+	SET_EXTENDED_MODE_ON(2, 74),
+	SET_EXTENDED_MODE_OFF(2, 75),
+	EXTENDED_MODE_ENABLED(2, 76),
+
 	GET_DATA_ACCESS_ERROR_ID(2, 2),
 	GET_DATA_ACCESS_ERROR_STR(2, 3),
 	GET_DATA(3, 11),

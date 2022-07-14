@@ -7,6 +7,22 @@ import java.util.ArrayList;
 
 public interface IDOMApp {
 
+
+	/**
+	 * Enable extended mode functionality
+	 */
+	void enableExtendedMode() throws MessageException;
+
+	/**
+	 * Disable extended mode functionality
+	 */
+	void disableExtendedMode() throws MessageException;
+
+	/**
+	 * Query extended mode setting
+	 */
+	boolean isExtendedModeEnabled() throws MessageException;
+
 	/**
 	 * Begin a run with the DOM flasherboard activated.
 	 * @param brightness set the LED brightness - one setting for all 12 LED
@@ -310,6 +326,34 @@ public interface IDOMApp {
 	void setLCWindow(int pre, int post) throws MessageException;
 
 	/**
+	 * Sets the Self LC mode.
+	 * @param mode The Self LC mode.
+	 * @throws MessageException
+	 */
+	void setSelfLCMode(SelfLCConfiguration.SelfLCMode mode) throws MessageException;
+
+	/**
+	 * Gets the Self LC mode.
+	 * @throws MessageException
+	 * @return The Self LC mode.
+	 */
+	byte getSelfLCMode() throws MessageException;
+
+	/**
+	 * Sets the Self LC window.
+	 * @param nanos Width of window in nanoseconds.
+	 * @throws MessageException
+	 */
+	void setSelfLCWindow(int nanos) throws MessageException;
+
+	/**
+	 * Gets the Self LC window.
+	 * @throws MessageException
+	 * @return The Self LC window in nanoseconds.
+	 */
+	int getSelfLCWindow() throws MessageException;
+
+	/**
 	 * Specify the rate at which the DOM will produce monitoring records
 	 * @param hw the Hardware monitoring record interval
 	 * @param config the Config monitoring record interval
@@ -359,6 +403,64 @@ public interface IDOMApp {
 	 */
 	void setTriggerMode(TriggerMode mode)
 			throws MessageException;
+
+	/**
+	 * Get the DOM triggering mode
+	 * @return  The current trigger mode
+	 * @throws MessageException
+	 */
+	byte getTriggerMode()
+			throws MessageException;
+
+	/**
+	 * Set the Alternative DOM triggering mode
+	 * @param mode trigger mode enumeration
+	 * @throws MessageException
+	 */
+	void setAltTriggerMode(TriggerMode mode)
+			throws MessageException;
+
+	/**
+	 * Get the DOM alt triggering mode
+	 * @return  The current alt trigger mode
+	 * @throws MessageException
+	 */
+	byte getAltTriggerMode()
+			throws MessageException;
+
+	/**
+	 * Set the DAQ mode.
+	 * @param mode the mode to set.
+	 * @throws MessageException
+	 */
+	void setDAQMode(DAQMode mode) throws MessageException;
+
+	/**
+	 * Get the current DAQ mode.
+	 * @return The current DAQ mode.
+	 * @throws MessageException
+	 */
+	 byte getDAQMode() throws MessageException;
+
+
+	/**
+	 * Turn the mainboard LED on.
+	 * @throws MessageException
+	 */
+	void mainboardLEDOn() throws MessageException;
+
+	/**
+	 * Turn the mainboard LED off.
+	 * @throws MessageException
+	 */
+	void mainboardLEDOff() throws MessageException;
+
+	/**
+	 * Query the status of the mainboard LED.
+	 * @return The current status.
+	 */
+	boolean isMainboardLEDOn() throws MessageException;
+
 
 	/**
 	 * Test if DOM is running DOMApp or IceBoot

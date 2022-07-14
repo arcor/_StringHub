@@ -79,5 +79,68 @@
         </supernovaMode>
         <scalerDeadtime>50000</scalerDeadtime>
     </domConfig>
+
+    <!-- Added 2022 to test additional configuration options -->
+    <domConfig mbid="4208dd9ec4ff" name="Sergeant_Towser">
+        <format><deltaCompressed/></format>
+        <triggerMode> spe </triggerMode>
+        <atwd0TriggerBias>         850 </atwd0TriggerBias>
+        <atwd1TriggerBias>         850 </atwd1TriggerBias>
+        <atwd0RampRate>            350 </atwd0RampRate>
+        <atwd1RampRate>            350 </atwd1RampRate>
+        <atwd0RampTop>            2300 </atwd0RampTop>
+        <atwd1RampTop>            2300 </atwd1RampTop>
+        <atwdAnalogRef>           2250 </atwdAnalogRef>
+        <frontEndPedestal>        2130 </frontEndPedestal>
+        <mpeTriggerDiscriminator>  654 </mpeTriggerDiscriminator>
+        <speTriggerDiscriminator>  564 </speTriggerDiscriminator>
+        <fastAdcRef>               800 </fastAdcRef>
+        <internalPulser>             0 </internalPulser>
+        <ledBrightness>           1023 </ledBrightness>
+        <frontEndAmpLowerClamp>      0 </frontEndAmpLowerClamp>
+        <flasherDelay>             450 </flasherDelay>
+        <muxBias>                 1000 </muxBias>
+        <pmtHighVoltage>          2800 </pmtHighVoltage>
+        <analogMux>                off </analogMux>
+        <pulserMode>            beacon </pulserMode>
+        <pulserRate>                 5 </pulserRate>
+        <pedestalSubtract>        true </pedestalSubtract>
+        <localCoincidence>
+            <type>       hard </type>
+            <mode> up-or-down </mode>
+            <txMode>     both </txMode>
+            <source>      spe </source>
+            <span>          2 </span>
+            <preTrigger>  1000 </preTrigger>
+            <postTrigger> 1000 </postTrigger>
+            <cableLength dir="up" dist="1">  550 </cableLength>
+            <cableLength dir="up" dist="2"> 1325 </cableLength>
+            <cableLength dir="up" dist="3"> 1950 </cableLength>
+            <cableLength dir="up" dist="4"> 2725 </cableLength>
+            <cableLength dir="down" dist="1">  725 </cableLength>
+            <cableLength dir="down" dist="2"> 1325 </cableLength>
+            <cableLength dir="down" dist="3"> 2125 </cableLength>
+            <cableLength dir="down" dist="4"> 2725 </cableLength>
+        </localCoincidence>
+        <supernovaMode enabled="true">
+            <deadtime> 250000 </deadtime>
+            <disc> spe </disc>
+        </supernovaMode>
+        <scalerDeadtime>  51200 </scalerDeadtime>
+
+        <selfLocalCoincidence>
+            <mode> spe </mode>
+            <window> 100 </window>
+        </selfLocalCoincidence>
+
+        <altTriggerMode>lc_down</altTriggerMode>
+
+        <daqMode> fadc </daqMode>
+
+        <mainboardLED> on </mainboardLED>
+
+
+    </domConfig>
+
 </domConfigList>
 

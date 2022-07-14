@@ -1,6 +1,8 @@
 package icecube.daq.domapp;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Map;
 
 public class DOMConfiguration implements Serializable
 {
@@ -9,7 +11,10 @@ public class DOMConfiguration implements Serializable
 	private int   hardwareMonitorInterval  = 30 * 40000000;
     private int   configMonitorInterval    = 2000000000;
     private int   fastMonitorInterval      = 40000000;
-    private TriggerMode   triggerMode      = TriggerMode.SPE;
+	private TriggerMode   triggerMode      = TriggerMode.SPE;
+	private TriggerMode   altTriggerMode   = TriggerMode.FORCED;
+	private DAQMode daqMode                = DAQMode.ATWD_FADC;
+	private boolean mainboardLEDOn         = false;
     private boolean       compressionEnabled   = false;
     
     private EngineeringRecordFormat engFormat = new EngineeringRecordFormat();
@@ -24,12 +29,13 @@ public class DOMConfiguration implements Serializable
     private short         pmt_hv                  = -1;
     private PulserMode    pulserMode              = PulserMode.BEACON;
     private short         pulserRate              = 5;
-    
-    
-    private LocalCoincidenceConfiguration lc      = new LocalCoincidenceConfiguration();
-    
-    
-    private boolean       supernovaEnabled        = false;
+
+
+	private LocalCoincidenceConfiguration lc      = new LocalCoincidenceConfiguration();
+	private SelfLCConfiguration selfLC      = new SelfLCConfiguration();
+
+
+	private boolean       supernovaEnabled        = false;
     private boolean       supernovaSpe            = true;
     private int           supernovaDeadtime       = 51200;
     private int           scalerDeadtime          = 51200;
@@ -91,6 +97,7 @@ public class DOMConfiguration implements Serializable
 	    this.supernovaEnabled = c.supernovaEnabled;
 	    this.supernovaSpe = c.supernovaSpe;
 	    this.triggerMode  = c.triggerMode;
+	    this.altTriggerMode = c.altTriggerMode;
 	    this.snSigEnabled = c.isSnSigEnabled();
 	    this.snDistance = c.getSnDistance();
 	    this.effVolumeEnabled = c.isEffVolumeEnabled();
@@ -174,6 +181,8 @@ public class DOMConfiguration implements Serializable
 
 	public LocalCoincidenceConfiguration getLC() { return lc; }
 
+	public SelfLCConfiguration getSelfLC() { return selfLC; }
+
 	public MuxState getMux() { return mux; }
 
 	/**
@@ -229,6 +238,16 @@ public class DOMConfiguration implements Serializable
 	public TriggerMode getTriggerMode()
 	{
 		return triggerMode;
+	}
+
+	public TriggerMode getAltTriggerMode()
+	{
+		return altTriggerMode;
+	}
+
+	public DAQMode getDaqMode()
+	{
+		return daqMode;
 	}
 
 	public boolean isAtwdChargeStamp()
@@ -429,6 +448,18 @@ public class DOMConfiguration implements Serializable
 		triggerMode = mode;
 	}
 
+	/**
+	 * Set the alt triggering mode
+	 * @param mode the alt trigger mode
+	 */
+	public void setAltTriggerMode(TriggerMode mode)
+	{
+		altTriggerMode = mode;
+	}
+
+
+	public void setDaqMode(DAQMode mode) { daqMode = mode; }
+
     public void useAtwdChargeStamp() 
     {
         chargeStampATWD = true;
@@ -460,7 +491,116 @@ public class DOMConfiguration implements Serializable
                 || averagePedestal[5] == null) return new Integer[0];
         return averagePedestal;
     }
-    
+
+
+    public void setMainboardLED(boolean on)
+	{
+		mainboardLEDOn = on;
+	}
+
+	public boolean getMainboardLEDOn()
+	{
+		return mainboardLEDOn;
+	}
+
+	public String prettyPrint(String ident)
+	{
+		return "DOMConfiguration{" + "\n" +
+				ident + "  hardwareMonitorInterval   =   " + hardwareMonitorInterval + "\n" +
+				ident + "  configMonitorInterval     =   " + configMonitorInterval + "\n" +
+				ident + "  fastMonitorInterval       =   " + fastMonitorInterval + "\n" +
+				ident + "  triggerMode               =   " + triggerMode + "\n" +
+				ident + "  altTriggerMode            =   " + altTriggerMode + "\n" +
+				ident + "  daqMode                   =   " + daqMode + "\n" +
+				ident + "  mainboardLEDOn            =   " + mainboardLEDOn + "\n" +
+				ident + "  compressionEnabled        =   " + compressionEnabled + "\n" +
+//				ident + "  engFormat                 =   " + engFormat + "\n" +
+				ident + "  dacs                      =   " + Arrays.toString(dacs) + "\n" +
+				ident + "  mux                       =   " + mux + "\n" +
+				ident + "  pmt_hv                    =   " + pmt_hv + "\n" +
+				ident + "  pulserMode                =   " + pulserMode + "\n" +
+				ident + "  pulserRate                =   " + pulserRate + "\n" +
+				ident + "  lc                        =   " + lc.prettyPrint(ident + "                               ") + "\n" +
+				ident + "  selfLc                    =   " + selfLC.prettyPrint(ident + "                               ") + "\n" +
+				ident + "  supernovaEnabled          =   " + supernovaEnabled + "\n" +
+				ident + "  supernovaSpe              =   " + supernovaSpe + "\n" +
+				ident + "  supernovaDeadtime         =   " + supernovaDeadtime + "\n" +
+				ident + "  scalerDeadtime            =   " + scalerDeadtime + "\n" +
+				ident + "  pedestalSubtract          =   " + pedestalSubtract + "\n" +
+				ident + "  simulation                =   " + simulation + "\n" +
+				ident + "  simNoiseRate              =   " + simNoiseRate + "\n" +
+				ident + "  averagePedestal           =   " + Arrays.toString(averagePedestal) + "\n" +
+				ident + "  enableMinBias             =   " + enableMinBias + "\n" +
+				ident + "  atwdSelect                =   " + atwdSelect + "\n" +
+				ident + "  simHLCFrac                =   " + simHLCFrac + "\n" +
+				ident + "  histoInterval             =   " + histoInterval + "\n" +
+				ident + "  histoPrescale             =   " + histoPrescale + "\n" +
+				ident + "  chargeStampATWD           =   " + chargeStampATWD + "\n" +
+				ident + "  chargeStampAtwdChannel    =   " + chargeStampAtwdChannel + "\n" +
+				ident + "  snSigEnabled              =   " + snSigEnabled + "\n" +
+				ident + "  snDistance                =   " + snDistance + "\n" +
+				ident + "  effVolumeEnabled          =   " + effVolumeEnabled + "\n" +
+				ident + '}';
+	}
+
+
+	/**
+	 * Advises on whether this configuration requires extended mode features on DOMApp.
+	 *
+	 * Should be considered as advisory with DOMapp providing the true enforcement
+	 * of extended mode features
+	 */
+	public boolean requiresExtendedMode(Map<String, String> why)
+	{
+		// The following extended mode policies are in effect as of Nov 2020
+        //            DAQ MODE
+        //            fadc_atwd   : DAQ_MODE_ATWD_FADC   : 0
+		//            fadc        : DAQ_MODE_FADC        : 1
+		//            timestamp   : DAQ_MODE_TS          : 2
+        //
+		//            ALT TRIGGER MODE
+		//            test_pattern     : TEST_PATTERN_TRIG_MODE   : 0<--- requires extended mode
+		//            forced           : CPU_TRIG_MODE            : 1
+		//            spe              : SPE_DISC_TRIG_MODE       : 2<--- requires extended mode
+		//            flasher          : FB_TRIG_MODE             : 3<--- requires extended mode
+		//            mpe              : MPE_DISC_TRIG_MODE       : 4<--- requires extended mode
+		//            pulser           : FE_PULSER_TRIG_MODE      : 5<--- requires extended mode
+		//            mainboard_led    : MB_LED_TRIG_MODE         : 6<--- requires extended mode
+		//            lc_up            : LC_UP_TRIG_MODE          : 7<--- requires extended mode
+		//            lc_down          : LC_DOWN_TRIG_MODE        : 8<--- requires extended mode
+		//
+		//            SELF LC MODE
+		//            none   : SELF_LC_MODE_NONE   : 0
+		//            spe    : SELF_LC_MODE_SPE    : 1
+		//            mpe    : SELF_LC_MODE_MPE    : 2
+        //
+		//            SELF LC WINDOW
+		//            <int>
+		//
+		//            MAINBOARD LED
+		//            on    : DSC_SET_MB_LED_ON    : mst 71  <--- requires extended mode
+		//            off   : DSC_SET_MB_LED_OFF   : mst 72
+
+		boolean required = (altTriggerMode != TriggerMode.FORCED) || (mainboardLEDOn);
+
+		if(why == null)
+		{
+			return required;
+		}
+		else
+		{
+			if(altTriggerMode != TriggerMode.FORCED)
+			{
+				why.put("altTriggerMode", altTriggerMode.getXMLvalue());
+			}
+			if(mainboardLEDOn)
+			{
+				why.put("mainboardLED", "on");
+			}
+		}
+
+		return required;
+	}
 }
 
 

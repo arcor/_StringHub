@@ -119,6 +119,27 @@ public class DOMApp implements IDOMApp
         devIO.close();
     }
 
+
+    @Override
+    public void enableExtendedMode() throws MessageException
+    {
+        sendMessage(MessageType.SET_EXTENDED_MODE_ON);
+    }
+
+    @Override
+    public void disableExtendedMode() throws MessageException
+    {
+        sendMessage(MessageType.SET_EXTENDED_MODE_OFF);
+    }
+
+    @Override
+    public boolean isExtendedModeEnabled() throws MessageException
+    {
+        ByteBuffer buf = sendMessage(MessageType.EXTENDED_MODE_ENABLED);
+        byte val = buf.get();
+        return val != 0;
+    }
+
     @Override
     public void changeFlasherSettings(
             short brightness,
@@ -378,8 +399,10 @@ public class DOMApp implements IDOMApp
     @Override
     public int getScalerDeadtime() throws MessageException
     {
-        // TODO - implement
-        return 0;
+
+        ByteBuffer buf = sendMessage(MessageType.GET_SCALER_DEADTIME);
+        int val = buf.getInt();
+        return val;
     }
 
     /*
@@ -764,6 +787,38 @@ public class DOMApp implements IDOMApp
         sendMessage(MessageType.SET_LC_WIN, buf);
     }
 
+    @Override
+    public void setSelfLCMode(SelfLCConfiguration.SelfLCMode mode) throws MessageException
+    {
+        ByteBuffer buf = ByteBuffer.allocate(1);
+        buf.put(mode.asByte()).flip();
+        sendMessage(MessageType.SET_SELF_LC_MODE, buf);
+    }
+
+    @Override
+    public byte getSelfLCMode() throws MessageException
+    {
+        ByteBuffer buf = sendMessage(MessageType.GET_SELF_LC_MODE);
+        byte val = buf.get();
+        return val;
+    }
+
+    @Override
+    public void setSelfLCWindow(int nanos) throws MessageException
+    {
+        ByteBuffer buf = ByteBuffer.allocate(4);
+        buf.putInt(nanos).flip();
+        sendMessage(MessageType.SET_SELF_LC_WINDOW, buf);
+    }
+
+    @Override
+    public int getSelfLCWindow() throws MessageException
+    {
+        ByteBuffer buf = sendMessage(MessageType.GET_SELF_LC_WINDOW);
+        int val = buf.getInt();
+        return val;
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -838,6 +893,66 @@ public class DOMApp implements IDOMApp
     }
 
     @Override
+    public byte getTriggerMode() throws MessageException
+    {
+        ByteBuffer buf = sendMessage(MessageType.GET_TRIG_MODE);
+        byte val = buf.get();
+        return val;
+    }
+
+    @Override
+    public void setAltTriggerMode(TriggerMode mode) throws MessageException
+    {
+        ByteBuffer buf = ByteBuffer.allocate(1);
+        buf.put(mode.getValue()).flip();
+        sendMessage(MessageType.SET_ALT_TRIG_MODE, buf);
+    }
+
+    @Override
+    public byte getAltTriggerMode() throws MessageException
+    {
+        ByteBuffer buf = sendMessage(MessageType.GET_ALT_TRIG_MODE);
+        byte val = buf.get();
+        return val;
+    }
+
+    @Override
+    public void setDAQMode(DAQMode mode) throws MessageException
+    {
+        ByteBuffer buf = ByteBuffer.allocate(1);
+        buf.put(mode.asByte()).flip();
+        sendMessage(MessageType.SET_DAQ_MODE, buf);
+    }
+
+    @Override
+    public byte getDAQMode() throws MessageException
+    {
+        ByteBuffer buf = sendMessage(MessageType.GET_DAQ_MODE);
+        byte val = buf.get();
+        return val;
+    }
+
+    @Override
+    public void mainboardLEDOn() throws MessageException
+    {
+        sendMessage(MessageType.SET_MB_LED_ON);
+    }
+
+    @Override
+    public void mainboardLEDOff() throws MessageException
+    {
+        sendMessage(MessageType.SET_MB_LED_OFF);
+    }
+
+    @Override
+    public boolean isMainboardLEDOn() throws MessageException
+    {
+        ByteBuffer buf = sendMessage(MessageType.MB_LED_RUNNING);
+        byte val = buf.get();
+        return val != 0;
+    }
+
+    @Override
     public boolean isRunningDOMApp() throws IOException, InterruptedException
     {
         ByteBuffer buf = ByteBuffer.allocate(8);
@@ -847,8 +962,8 @@ public class DOMApp implements IDOMApp
         ByteBuffer ack = ByteBuffer.allocate(34);
         while (ack.position() < 20) ack.put(devIO.recv());
         // if the 5th byte is an 'E'
-        StringBuilder debugTxt = new StringBuilder("DOMApp detector returns");
-        for (int i = 0; i < 8; i++) {
+        StringBuilder debugTxt = new StringBuilder("DOMApp detector returns: ");
+        for (int i = 0; i < 20; i++) {
             int b = ack.get(i);
             if (b < 0) b += 256;
             debugTxt.append(String.format(" %02x", b));
