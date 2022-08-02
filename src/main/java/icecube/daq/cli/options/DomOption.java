@@ -1,6 +1,7 @@
 package icecube.daq.cli.options;
 
 import icecube.daq.cli.util.DomResolver;
+import icecube.daq.cli.util.DomSetResolver;
 import icecube.daq.util.*;
 import picocli.CommandLine;
 
@@ -23,6 +24,7 @@ import java.util.*;
  * "hub:27"
  * "string:33"
  * "sps"
+ * "domset:<set name>
  *
  * combinations:
  * "0x69a843a5e181,69a843a5e181,Doxophobia"
@@ -214,7 +216,7 @@ public class DomOption
 
     /**
      * Encapsulate topology extraction.
-     * Understands: all, sps, hub:#
+     * Understands: all, sps, hub:#, domset:#
      */
     public static class TopologyGroups
     {
@@ -253,6 +255,10 @@ public class DomOption
                 else if(group.contains(":"))
                 {
                     String[] subitems = group.split(":");
+                    if(subitems.length != 2)
+                    {
+                        throw new CommandLine.TypeConversionException("malformed dom group specifier: [" + group + "]");
+                    }
                     switch (subitems[0])
                     {
                         case "hub":
@@ -271,6 +277,19 @@ public class DomOption
 
                             try {
                                 doms.addAll(db.getDomsOnString(Integer.parseInt(subitems[1])));
+                            } catch (NumberFormatException e) {
+                                throw new CommandLine.TypeConversionException(
+                                        String.format("bad string number [%s] in dom group specifier: [%s]",
+                                                subitems[1], group));
+
+                            }
+
+                            break;
+                        case "domset":
+
+                            try {
+                                List<DOMInfo> fromSet = DomSetResolver.instance().resolve(subitems[1]);
+                                doms.addAll(fromSet);
                             } catch (NumberFormatException e) {
                                 throw new CommandLine.TypeConversionException(
                                         String.format("bad string number [%s] in dom group specifier: [%s]",

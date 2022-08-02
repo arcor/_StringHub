@@ -20,6 +20,14 @@ public enum CLIData
     FALLBACK_DOM_GEOMETRY("fallback-default-dom-geometry.xml.bz2"),
 
     /**
+     * a packaged copy of domset-definitions.xml for cases where
+     * ~/config is not available. Non-authoritative and may go
+     * out-of-date, so prefer looking to ~/config first.
+     */
+    FALLBACK_DOM_SETS("fallback-domset-definitions.xml"),
+
+
+    /**
      * a packaged copy of the NIST leap seconds file for cases where
      * ~/config is not available. Non-authoritative and may go
      * out-of-date, so prefer looking to ~/config first.
@@ -54,5 +62,10 @@ public enum CLIData
         {
             return stream;
         }
+    }
+
+    public String getLocation()
+    {
+        return this.getClass().getResource(fileName).toExternalForm();
     }
 }

@@ -132,6 +132,9 @@ public class DomOptionTest
                                 0xf359b616c6c2L, 0xf996d1619febL, 0xfae52e9ef79bL, 0xff1cca741c04L,
 
                         }),
+                        new Case("domset:DMICE_TRIG", new long[]{
+                                0x4f1d6939870L,  0x37793e5448e1L, 0x8c40d705fc4bL, 0x99b591c21d6eL
+                        }),
 
                 };
 
@@ -159,7 +162,10 @@ public class DomOptionTest
                         "i_am_not_a_known_dom_name",
                         "Doxophobia,hub:431x,0xeeeeeeee",
                         "stringtypo:55",
-                        "string:55x"
+                        "string:55x",
+                        "hub:",
+                        "string:",
+                        "domset:",
                 };
 
         for(String spec : bad)
@@ -303,6 +309,9 @@ public class DomOptionTest
                                 0xf359b616c6c2L, 0xf996d1619febL, 0xfae52e9ef79bL, 0xff1cca741c04L,
 
                         }),
+                        new Case("domset:DMICE_TRIG", new long[]{
+                                0x4f1d6939870L,  0x37793e5448e1L, 0x8c40d705fc4bL, 0x99b591c21d6eL
+                        }),
 
                 };
 
@@ -331,7 +340,10 @@ public class DomOptionTest
                         "g",
                         "i_am_not_a_known_dom_name",
                         "Doxophobia,hub:431x,0xeeeeeeee",
-                        "stringtypo:55"
+                        "stringtypo:55",
+                        "hub:",
+                        "string:",
+                        "domset:",
                 };
 
         for(String spec : bad)

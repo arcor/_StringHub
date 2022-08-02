@@ -37,23 +37,25 @@ public class DomResolver
 
     private static IDOMRegistry load()
     {
-        File configDirectory = LocatePDAQ.findConfigDirectory();
-
-        sourceLocation = configDirectory.getAbsolutePath().concat("/default_dom_geometry.xml");
 
         // defer to the local "config/default-dom-geometry.xml"
         logger.debug("Loading DOM registry from environment");
         try {
+            File configDirectory = LocatePDAQ.findConfigDirectory();
+
+            sourceLocation = configDirectory.getAbsolutePath().concat("/default_dom_geometry.xml");
             return DOMRegistryFactory.load();
         } catch (Throwable th) {
             logger.warn("could not load default-dom-geometry.xml from environment: " + th.getMessage());
         }
         // load from resources
-        logger.warn("Loading internal default-dom-geometry.xml ...could be stale");
+        logger.warn("Loading internal fallback-default-dom-geometry.xml ...could be stale");
         try {
+            sourceLocation = CLIData.FALLBACK_DOM_GEOMETRY.getLocation();
+            logger.warn("loading dom geometry from "  + sourceLocation);
             return DOMRegistryFactory.load(CLIData.FALLBACK_DOM_GEOMETRY.getStream());
         } catch (Throwable th) {
-            logger.debug("could not load default-dom-geometry.xml from environment: ", th);
+            logger.warn("could not load fallback default-dom-geometry.xml: ", th);
         }
 
         // failsafe
