@@ -1,7 +1,5 @@
 package icecube.daq.performance.binary.record.pdaq;
 
-import icecube.daq.cli.commands.RecordCmd;
-import icecube.daq.cli.options.RecordTypeOption;
 import icecube.daq.performance.binary.buffer.RecordBuffer;
 import icecube.daq.performance.binary.record.RecordReader;
 import icecube.daq.performance.binary.record.UTCRecordReader;
