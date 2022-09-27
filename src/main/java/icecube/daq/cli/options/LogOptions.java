@@ -15,15 +15,18 @@ public class LogOptions
 {
 
 
-    @Option(names = {"--log"}, required = false, description = "log file [filename | stdout | stderr | off]")
+    @Option(names = {"--log"}, required = false, description = "log file [filename | stdout | stderr | off]",
+    paramLabel = "FILE")
     String logfile = "stdout";
 
     @Option(names = {"--log-level"}, required = false,
             description = "log level [${COMPLETION-CANDIDATES}] default: ${DEFAULT-VALUE}",
+            paramLabel = "LOG_LEVEL",
     defaultValue = "WARN")
     LevelOpts level;
 
-    @Option(names = {"--log-props"}, required = false, description = "load log settings from a log4j properties file")
+    @Option(names = {"--log-props"}, required = false, description = "load log settings from a log4j properties file",
+    paramLabel = "FILE")
     String props = null;
 
 
