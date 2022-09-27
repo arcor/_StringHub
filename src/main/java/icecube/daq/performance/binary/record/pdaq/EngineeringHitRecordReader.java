@@ -4,34 +4,63 @@ import icecube.daq.performance.binary.buffer.RecordBuffer;
 
 import java.nio.ByteBuffer;
 
+import static icecube.daq.performance.binary.record.RecordUtil.extractUint8;
+
 /**
  * A PDAQ engineering hit record.
  *
- * -----------------------------------------------------------------------------
- * | length [uint4]   |  type (uint4)=2  |           mbid[uint8]               |
- * -----------------------------------------------------------------------------
- * |          padding [unit8]            |           utc[uint8]                |
- * -----------------------------------------------------------------------------
- * |   hrl  |  bom   | a b c d e f | domclk [uint6] | N FADC samples ...       |
- * -----------------------------------------------------------------------------
- * |              ...                                                          |
- * -----------------------------------------------------------------------------
- * |  ATWD data ...                                                            |
- * -----------------------------------------------------------------------------
- * |              ...                                                          |
- * -----------------------------------------------------------------------------
- *
- * hrl: [uint2] hit record length
- * bom: [uint2] byte order mark (should be 01)
+ * --------------------------------------------------------------------------------------------
+ * | length (uint32)      | type (uint32)=2      |        mbid (uint64)                       |
+ * --------------------------------------------------------------------------------------------
+ * |               padding (uint64)              |        utc (uint64)                        |
+ * --------------------------------------------------------------------------------------------
+ * |   hrl     |    bom   |  a  |  b  |  c  |  d |  e  |  f  |        domclk (uint48)         |
+ * --------------------------------------------------------------------------------------------
+ * |                                   FADC samples (byte[N]) ...                             |
+ * --------------------------------------------------------------------------------------------
+ * |                                           ...                                            |
+ * --------------------------------------------------------------------------------------------
+ * |                                      ATWD data ...                                       |
+ * --------------------------------------------------------------------------------------------
+ * |                                           ...                                            |
+ * --------------------------------------------------------------------------------------------
+ * hrl: [uint16] hit record length
+ * bom: [uint16] byte order mark (should be 01)
  * a:   [byte]  ATWD chip
  * b:   [byte]  number of FADC samples N
  * c:   [byte]  ATWD format flag byte #0 - controls ch0/1
  * d:   [byte]  ATWD format flag byte #1 - controls ch2/3
  * e:   [byte]  trigger flag
  * f:   [byte]  padding byte
+ *
  */
 public class EngineeringHitRecordReader extends DomHitRecordReader
 {
+
+    private static final String DOC =
+            "--------------------------------------------------------------------------------------------\n" +
+            "| length (uint32)      | type (uint32)=2      |        mbid (uint64)                       |\n" +
+            "--------------------------------------------------------------------------------------------\n" +
+            "|               padding (uint64)              |        utc (uint64)                        |\n" +
+            "--------------------------------------------------------------------------------------------\n" +
+            "|   hrl     |    bom   |  a  |  b  |  c  |  d |  e  |  f  |        domclk (uint48)         |\n" +
+            "--------------------------------------------------------------------------------------------\n" +
+            "|                                   FADC samples (byte[N]) ...                             |\n" +
+            "--------------------------------------------------------------------------------------------\n" +
+            "|                                           ...                                            |\n" +
+            "--------------------------------------------------------------------------------------------\n" +
+            "|                                      ATWD data ...                                       |\n" +
+            "--------------------------------------------------------------------------------------------\n" +
+            "|                                           ...                                            |\n" +
+            "--------------------------------------------------------------------------------------------\n" +
+            "hrl: [uint16] hit record length\n" +
+            "bom: [uint16] byte order mark (should be 01)\n" +
+            "a:   [byte]  ATWD chip\n" +
+            "b:   [byte]  number of FADC samples N\n" +
+            "c:   [byte]  ATWD format flag byte #0 - controls ch0/1\n" +
+            "d:   [byte]  ATWD format flag byte #1 - controls ch2/3\n" +
+            "e:   [byte]  trigger flag\n" +
+            "f:   [byte]  padding byte";
 
     public static final EngineeringHitRecordReader instance =
             new EngineeringHitRecordReader();
@@ -114,17 +143,17 @@ public class EngineeringHitRecordReader extends DomHitRecordReader
         return buffer.getByte(offset + 39);
     }
 
-    public byte getTriggerFlag(final ByteBuffer buffer)
+    public short getTriggerFlag(final ByteBuffer buffer)
     {
-        return buffer.get(40);
+        return extractUint8(buffer, 40);
     }
-    public byte getTriggerFlag(final ByteBuffer buffer, final int offset)
+    public short getTriggerFlag(final ByteBuffer buffer, final int offset)
     {
-        return buffer.get(offset + 40);
+        return extractUint8(buffer, offset + 40);
     }
-    public byte getTriggerFlag(final RecordBuffer buffer, final int offset)
+    public short getTriggerFlag(final RecordBuffer buffer, final int offset)
     {
-        return buffer.getByte(offset + 40);
+        return extractUint8(buffer, offset + 40);
     }
 
     public byte[] getDOMClock(final ByteBuffer buffer)
@@ -246,7 +275,7 @@ public class EngineeringHitRecordReader extends DomHitRecordReader
     {
         return getTriggerMode(getTriggerFlag(buffer, offset));
     }
-    public short getTriggerMode(byte triggerFlag)
+    public short getTriggerMode(short triggerFlag)
     {
         return (short) (triggerFlag & 0x3);
     }
@@ -294,4 +323,9 @@ public class EngineeringHitRecordReader extends DomHitRecordReader
         return ((word0 >> 2) & 0x1) == 1;
     }
 
+    @Override
+    public String describe()
+    {
+        return DOC;
+    }
 }

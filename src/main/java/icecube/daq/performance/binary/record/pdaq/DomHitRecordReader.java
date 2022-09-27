@@ -17,6 +17,29 @@ import java.nio.ByteBuffer;
 public abstract class DomHitRecordReader extends DaqBufferRecordReader
 {
 
+    // goofy workaround to provide a custom description
+    private static class DocHolder extends DaqBufferRecordReader
+    {
+        private static final String DOC =
+                "--------------------------------------------------------------------------------------------\n" +
+                "| length (uint32)      | type (uint32)={2,3}  |        mbid (uint64)                       |\n" +
+                "--------------------------------------------------------------------------------------------\n" +
+                "|               padding (uint64)              |        utc (uint64)                        |\n" +
+                "--------------------------------------------------------------------------------------------\n" +
+                "|                                payload (byte[length-32]) ...                             |\n" +
+                "--------------------------------------------------------------------------------------------\n" +
+                "type 2: Engineering Hit\n" +
+                "type 3: Delta Compressed Hit\n";
+
+        @Override
+        public String describe()
+        {
+            return DOC;
+        }
+    }
+
+    public static final DaqBufferRecordReader instance = new DocHolder();
+
     /** Generic reader for extracting type codes. */
     private static final TypeCodeRecordReader TYPE_CODE_RECORD_READER =
             TypeCodeRecordReader.instance;
@@ -75,7 +98,6 @@ public abstract class DomHitRecordReader extends DaqBufferRecordReader
             case DOMHitFactory.TYPE_ENG_HIT:
                 return EngineeringHitRecordReader.instance;
             case DOMHitFactory.TYPE_DELTA_HIT:
-            case DOMHitFactory.TYPE_DELTA_PAYLOAD:
                 return DeltaCompressedHitRecordReader.instance;
             default:
                 throw new PayloadException("Unsuported type " + typeId);
@@ -145,5 +167,17 @@ public abstract class DomHitRecordReader extends DaqBufferRecordReader
     public abstract short getTriggerMode(final ByteBuffer buffer);
     public abstract short getTriggerMode(ByteBuffer buffer, int offset);
     public abstract short getTriggerMode(RecordBuffer buffer, int offset);
+
+    /**
+     * Note: Unsure if the trigger flag format is the same in engineering/delta compressed
+     * hits.
+     *
+     *
+     * @param buffer
+     * @return
+     */
+    public abstract short getTriggerFlag(final ByteBuffer buffer);
+    public abstract short getTriggerFlag(ByteBuffer buffer, int offset);
+    public abstract short getTriggerFlag(RecordBuffer buffer, int offset);
 
 }

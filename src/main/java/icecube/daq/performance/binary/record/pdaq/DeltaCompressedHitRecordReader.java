@@ -28,6 +28,22 @@ import java.nio.ByteBuffer;
 public class DeltaCompressedHitRecordReader extends DomHitRecordReader
 {
 
+    private static final String DOC =
+                    "--------------------------------------------------------------------------------------------\n" +
+                    "| length (uint32)      | type (uint32)=3      |        mbid (uint64)                       |\n" +
+                    "--------------------------------------------------------------------------------------------\n" +
+                    "|               padding (uint64)              |        utc (uint64)                        |\n" +
+                    "--------------------------------------------------------------------------------------------\n" +
+                    "|bo (uint16)|v (uint16)|fqp(uint16)|  domclk (uint64)              | word-1 (byte[4])      |\n" +
+                    "--------------------------------------------------------------------------------------------\n" +
+                    "| word-3 (byte[4])     |            hit-data[byte[length-54]] ...                          |\n" +
+                    "--------------------------------------------------------------------------------------------\n" +
+                    "|                                           ...                                            |\n" +
+                    "--------------------------------------------------------------------------------------------\n" +
+                    "fqp:[&0x01=pedestal subtraction, &0x02=atwd charge stamp]\n" +
+                    "word1:\n" +
+                    "word3:";
+
     public static final DeltaCompressedHitRecordReader instance =
             new DeltaCompressedHitRecordReader();
 
@@ -146,6 +162,20 @@ public class DeltaCompressedHitRecordReader extends DomHitRecordReader
 
     // bit fields
 
+    public short getTriggerFlag(final ByteBuffer buffer)
+    {
+        return (short) (getWord1(buffer) >> 18 & 0x3ff);
+    }
+    public short getTriggerFlag(final ByteBuffer buffer, final int offset)
+    {
+        return (short) (getWord1(buffer, offset) >> 18 & 0x3ff);
+    }
+    public short getTriggerFlag(final RecordBuffer buffer, final int offset)
+    {
+        return (short) (getWord1(buffer, offset) >> 18 & 0x3ff);
+    }
+
+
     @Override
     public short getTriggerMode(final ByteBuffer buffer)
     {
@@ -201,5 +231,9 @@ public class DeltaCompressedHitRecordReader extends DomHitRecordReader
     }
 
 
-
+    @Override
+    public String describe()
+    {
+        return DOC;
+    }
 }
