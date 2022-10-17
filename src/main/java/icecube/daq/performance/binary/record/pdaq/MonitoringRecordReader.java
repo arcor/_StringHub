@@ -11,7 +11,7 @@ import java.nio.ByteOrder;
 public class MonitoringRecordReader
 {
 
-    public static class RAW_MonitoringRecordReader implements RecordReader
+    public static class RAW_MonitoringRecordReader extends LengthPrependedRecordReader._16Bit
     {
         protected final int OFFSET;
 

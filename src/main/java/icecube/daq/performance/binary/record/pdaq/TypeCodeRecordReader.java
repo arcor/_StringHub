@@ -15,7 +15,7 @@ import java.nio.ByteBuffer;
  * @see DaqBufferRecordReader , SimpleHitRecordReader
  *
  */
-public class TypeCodeRecordReader extends LengthPrependedRecordReader
+public class TypeCodeRecordReader extends LengthPrependedRecordReader._32Bit
 {
 
     public static final TypeCodeRecordReader instance =

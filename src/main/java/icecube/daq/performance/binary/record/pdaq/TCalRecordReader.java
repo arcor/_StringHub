@@ -52,13 +52,13 @@ public class TCalRecordReader
 
         private static final String DOC =
                 "--------------------------------------------------------------------------------------------\n" +
-                "| length (uint32)      |    type (uint32)     |        utc (uint64)                        |\n" +
+                "| length (uint32)      |  type=202 (uint32)   |              mbid (uint64)                 |\n" +
                 "--------------------------------------------------------------------------------------------\n" +
-                "|                mbid (uint64)                | dor_header (le uint32) |        ...        |\n" +
+                "|               reserved (byte[8])            |               utc (uint64)                 |\n" +
                 "--------------------------------------------------------------------------------------------\n" +
-                "| ... dortx (le uint64)|              dorrx (le uint64)                |        ...        |\n" +
+                "| dor_header (le uint32) |            dortx (le uint64)            | dorrx (le uint64) ... |\n" +
                 "--------------------------------------------------------------------------------------------\n" +
-                "|                                 ... dorwf (le uint16[64])  ...                           |\n" +
+                "|         ...            |        ... dorwf (le uint16[64])  ...                           |\n" +
                 "--------------------------------------------------------------------------------------------\n" +
                 "|                                            ...                                           |\n" +
                 "--------------------------------------------------------------------------------------------\n" +
@@ -68,18 +68,30 @@ public class TCalRecordReader
                 "--------------------------------------------------------------------------------------------\n" +
                 "|                                            ...                                           |\n" +
                 "--------------------------------------------------------------------------------------------\n" +
+                "|SOH|timestr|qual|                dorclk (uint64)              |\n" +
+                "----------------------------------------------------------------\n" +
                 "dor_header:   LE word originating from firmware, holds two LE 16-bit fields,\n" +
                 "                 byte_count: The length of the original record in firmware\n" +
                 "                 flag: status flag bits\n" +
                 "                 E.G. : E0 00 01 00\n" +
                 "                         |  |  |  |\n" +
                 "                         |  |  `--`---> flags (le) = 0x0001\n" +
-                "                         `--`---------> byte count(le) = 0x00e0 = 224\n";
+                "                         `--`---------> byte count(le) = 0x00e0 = 224\n" +
+                "SOH (byte):         IRIG Start-of-header character\n" +
+                "timestr (byte[12]): IRIG time srting DDD:HH:MM:SS\n" +
+                "qual:               Master clock quality marker\n" +
+                "                       0x20 : ' ' : VERY GOOD\n" +
+                "                       0x2e : '.' : GOOD\n" +
+                "                       0x2a : '*' : AVERAGE\n" +
+                "                       0x23 : '#' : BAD\n" +
+                "                       0x3f : '?' : VERY BAD\n";
 
 
         public static final PDAQ_TCalRecordReader instance = new PDAQ_TCalRecordReader();
 
         TCalPayloadReader payloadReader = new TCalPayloadReader(32);
+        GPSRecordReader gpsRecordReader = new GPSRecordReader(324);
+
 
         public int getDorHeader(final ByteBuffer buffer)
         {
@@ -177,6 +189,66 @@ public class TCalRecordReader
         {
             return payloadReader.getDOMWaveform(buffer, offset);
 
+        }
+
+        public byte getSOH(final ByteBuffer buffer)
+        {
+            return getSOH(buffer, 0);
+        }
+
+        public byte getSOH(final ByteBuffer buffer, final int offset)
+        {
+            return gpsRecordReader.getSOH(buffer, offset);
+        }
+
+        public byte getSOH(final RecordBuffer buffer, final int offset)
+        {
+            return gpsRecordReader.getSOH(buffer, offset);
+        }
+
+        public String getTimestring(final ByteBuffer buffer)
+        {
+            return getTimestring(buffer, 0);
+        }
+
+        public String getTimestring(final ByteBuffer buffer, final int offset)
+        {
+            return gpsRecordReader.getTimestring(buffer, offset);
+        }
+
+        public String getTimestring(final RecordBuffer buffer, final int offset)
+        {
+            return gpsRecordReader.getTimestring(buffer, offset);
+        }
+
+        public byte getQualityMark(final ByteBuffer buffer)
+        {
+            return getQualityMark(buffer, 0);
+        }
+
+        public byte getQualityMark(final ByteBuffer buffer, final int offset)
+        {
+            return gpsRecordReader.getQualityMark(buffer, offset);
+        }
+
+        public byte getQualityMark(final RecordBuffer buffer, final int offset)
+        {
+            return gpsRecordReader.getQualityMark(buffer, offset);
+        }
+
+        public long getDORClock(final ByteBuffer buffer)
+        {
+            return getDORClock(buffer, 0);
+        }
+
+        public long getDORClock(final ByteBuffer buffer, final int offset)
+        {
+            return  gpsRecordReader.getDORClock(buffer, offset);
+        }
+
+        public long getDORClock(final RecordBuffer buffer, final int offset)
+        {
+            return  gpsRecordReader.getDORClock(buffer, offset);
         }
 
         @Override

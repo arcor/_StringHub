@@ -144,13 +144,13 @@ public class EventV5RecordReader extends TypeCodeRecordReader
     @Override
     public LongField getOrderingField()
     {
-        return RecordReader.NO_MBID_FIELD;
+        return UTC_FIELD;
     }
 
     @Override
     public LongField getMbidField()
     {
-        return UTC_FIELD;
+        return RecordReader.NO_MBID_FIELD;
     }
 
 }

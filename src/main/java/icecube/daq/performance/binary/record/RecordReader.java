@@ -2,7 +2,9 @@ package icecube.daq.performance.binary.record;
 
 import icecube.daq.performance.binary.buffer.RecordBuffer;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ReadableByteChannel;
 
 /**
  * Base interface for reading binary records from a buffer.
@@ -11,7 +13,7 @@ import java.nio.ByteBuffer;
  * accessor functions that act against a binary store of records.
  *
  * The intention is to allow for the management of a large number
- * of records without a allocating a large nuber of containment
+ * of records without allocating a large number of containment
  * objects.
  *
  * Record readers can be thought of as a static class hierarchy. Java
@@ -20,6 +22,9 @@ import java.nio.ByteBuffer;
  */
 public interface RecordReader
 {
+    public ByteBuffer deserialize(ReadableByteChannel channel) throws IOException;
+
+
     // utilizing ByteBuffer
     public int getLength(ByteBuffer buffer);
     public int getLength(ByteBuffer buffer, int offset);
@@ -27,9 +32,32 @@ public interface RecordReader
     // utilizing RecordBuffer
     public int getLength(RecordBuffer buffer, int offset);
 
+
+
+    /**
+     * Thrown by deserialize when a record source channel terminates on a partial record
+     */
+    static class IncompleteRecordException extends IOException
+    {
+        public IncompleteRecordException()
+        {
+            super();
+        }
+
+        public IncompleteRecordException(String message)
+        {
+            super(message);
+        }
+
+        public IncompleteRecordException(String message, Throwable cause)
+        {
+            super(message, cause);
+        }
+    }
+
     /**
      * provide access to common field types for generic use.
-     * May return fail-fast implemetations if record type
+     * May return fail-fast implementations if record type
      * does not provide the field.
      */
     public default LongField getOrderingField()
