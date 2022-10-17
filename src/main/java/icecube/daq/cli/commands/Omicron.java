@@ -1,4 +1,4 @@
-package icecube.daq;
+package icecube.daq.cli.commands;
 
 import icecube.daq.bindery.AsyncSorterOutput;
 import icecube.daq.bindery.BufferConsumerBuffered;
@@ -29,7 +29,8 @@ import java.util.Properties;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-public class Omicron {
+public class Omicron
+{
 
     private static Driver driver = Driver.getInstance();
     private static ArrayList<DataCollector> collectors;
