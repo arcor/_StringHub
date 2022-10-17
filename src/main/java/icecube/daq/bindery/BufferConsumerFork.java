@@ -24,7 +24,7 @@ public class BufferConsumerFork implements BufferConsumer
     @Override
     public void consume(ByteBuffer buf) throws IOException
     {
-        t1.consume(buf);
+        t1.consume(buf.slice().asReadOnlyBuffer()); // don't let t1 alter the buffer
         t2.consume(buf);
     }
 
@@ -35,6 +35,8 @@ public class BufferConsumerFork implements BufferConsumer
     public void endOfStream(long mbid)
         throws IOException
     {
-        consume(MultiChannelMergeSort.eos(mbid));
+//        consume(MultiChannelMergeSort.eos(mbid));
+        t1.endOfStream(mbid);
+        t2.endOfStream(mbid);
     }
 }
