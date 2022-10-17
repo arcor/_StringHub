@@ -1,7 +1,7 @@
 package icecube.daq.cli.filter;
 
-import icecube.daq.cli.options.RecordTypeOption;
 import icecube.daq.cli.options.TimeOption;
+import icecube.daq.cli.stream.RecordType;
 import icecube.daq.payload.PayloadException;
 import icecube.daq.performance.binary.record.RecordReader;
 import icecube.daq.performance.binary.record.pdaq.DomHitRecordReader;
@@ -20,7 +20,7 @@ public interface Filter
 
     String describe();
 
-    Predicate<ByteBuffer> asPredicate(RecordTypeOption.RecordType recordType);
+    Predicate<ByteBuffer> asPredicate(RecordType recordType);
 
     static Filter negateFilter(Filter toNegate)
     {
@@ -33,7 +33,7 @@ public interface Filter
             }
 
             @Override
-            public Predicate<ByteBuffer> asPredicate(RecordTypeOption.RecordType recordType)
+            public Predicate<ByteBuffer> asPredicate(RecordType recordType)
             {
                 Predicate<ByteBuffer> delegate = toNegate.asPredicate(recordType);
 
@@ -60,7 +60,7 @@ public interface Filter
             }
 
             @Override
-            public Predicate<ByteBuffer> asPredicate(RecordTypeOption.RecordType recordType)
+            public Predicate<ByteBuffer> asPredicate(RecordType recordType)
             {
                 final RecordReader.LongField utcField = recordType.rr.getOrderingField();
                 return new Predicate<ByteBuffer>()
@@ -69,6 +69,67 @@ public interface Filter
                     public boolean test(ByteBuffer byteBuffer)
                     {
                         return interval.inRange(utcField.value(byteBuffer, 0));
+                    }
+                };
+            }
+        };
+    }
+
+    static Filter limitCountFilter(long count)
+    {
+        return new Filter()
+        {
+            @Override
+            public String describe()
+            {
+                return String.format("Restricts the stream to the first %d records", count);
+            }
+
+            @Override
+            public Predicate<ByteBuffer> asPredicate(RecordType recordType)
+            {
+                return new Predicate<ByteBuffer>()
+                {
+                    long currentCount = 0;
+                    @Override
+                    public boolean test(ByteBuffer byteBuffer)
+                    {
+                        return currentCount++ < count;
+                    }
+                };
+            }
+        };
+    }
+
+    static Filter limitSizeFilter(long maxBytes)
+    {
+        return new Filter()
+        {
+            @Override
+            public String describe()
+            {
+                return String.format("Restricts the stream to at most the first %d bytes", maxBytes);
+            }
+
+            @Override
+            public Predicate<ByteBuffer> asPredicate(RecordType recordType)
+            {
+                return new Predicate<ByteBuffer>()
+                {
+                    long currentSize = 0;
+                    @Override
+                    public boolean test(ByteBuffer byteBuffer)
+                    {
+                        long tmp = currentSize + byteBuffer.remaining();
+                        if(tmp <= maxBytes)
+                        {
+                            currentSize = tmp;
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
                     }
                 };
             }
@@ -88,7 +149,7 @@ public interface Filter
             }
 
             @Override
-            public Predicate<ByteBuffer> asPredicate(RecordTypeOption.RecordType recordType)
+            public Predicate<ByteBuffer> asPredicate(RecordType recordType)
             {
                 final RecordReader.LongField mbidField = recordType.rr.getMbidField();
 
@@ -152,7 +213,7 @@ public interface Filter
             }
 
             @Override
-            public Predicate<ByteBuffer> asPredicate(RecordTypeOption.RecordType recordType)
+            public Predicate<ByteBuffer> asPredicate(RecordType recordType)
             {
                 return new Predicate<ByteBuffer>()
                 {
