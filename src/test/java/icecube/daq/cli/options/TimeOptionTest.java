@@ -113,26 +113,6 @@ public class TimeOptionTest
     @Test
     public void testIntervalConversion()
     {
-//        public static void main(String[] args)
-//        {
-//            IntervalParameterConverter test = new IntervalParameterConverter();
-//
-//            String[] trials = new String[] {
-//                    ".:.",
-//                    ".:123",
-//                    "123:.",
-//                    "1111111111:2222222222",
-//                    "1:+10m",
-//                    "-1s:20000000000",
-//                    "-1:20000000000",
-//            };
-//            for (int i = 0; i < trials.length; i++) {
-//                String trial = trials[i];
-//                System.out.printf("[%s] -- > [%d - %d]%n", trial, test.convert(trial).from, test.convert(trial).to);
-//
-//            }
-//        }
-
         IntervalParameterConverter subject = new IntervalParameterConverter();
 
         class Case
