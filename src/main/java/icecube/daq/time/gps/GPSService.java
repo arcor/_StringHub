@@ -38,43 +38,79 @@ public class GPSService
 
     private static final Logger logger = Logger.getLogger(GPSService.class);
 
+    public static final String GPS_MODE_PROPERTY = "icecube.daq.time.gps.gps-mode";
+
     /**
      * Configures the GPS mode, one of dsb, no-dsb, discover.
      */
-    public static final String GPS_MODE =
-            System.getProperty("icecube.daq.time.gps.gps-mode", "dsb");
+    public static final String GPS_MODE_SETTING =
+            System.getProperty(GPS_MODE_PROPERTY, "dsb");
 
     /** The singleton, system wide service instance. */
     private static final IGPSService service;
 
+    // supported modes
+    public static enum GPSMode
+    {
+        DSB("dsb")
+                {
+                    @Override
+                    protected IGPSService initService()
+                    {
+                        return new DSBGPSService();
+                    }
+                },
+        NO_DSB("no-dsb")
+                {
+                    @Override
+                    protected IGPSService initService()
+                    {
+                        // This is not an appropriate production mode so log
+                        // a warning
+                        logger.warn("Running without GPS hardware," +
+                                " UTC reconstruction will be impacted.");
+                        return new NullGPSService();
+                    }
+                },
+        DISCOVER("discover"){
+            @Override
+            protected IGPSService initService()
+            {
+                // This is not an appropriate production mode so log
+                // a warning
+                logger.warn("Running in relaxed GPS hardware mode," +
+                        " UTC reconstruction may be impacted.");
+                return new FailsafeGPSService( new DSBGPSService(),
+                        new NullGPSService());
+            }
+        };
+
+        public final String key;
+
+        GPSMode(String key)
+        {
+            this.key = key;
+        }
+
+        protected abstract IGPSService initService();
+
+        static GPSMode resolve(String key)
+        {
+            switch (key)
+            {
+                case "dsb": return DSB;
+                case "no-dsb": return NO_DSB;
+                case "discover": return DISCOVER;
+                default: throw new Error("Unknown GPS mode: [" + key + "]");
+            }
+        }
+    }
+
+
     // initialize the service
     static
     {
-        if(GPS_MODE.equalsIgnoreCase("dsb"))
-        {
-            service = new DSBGPSService();
-        }
-        else if(GPS_MODE.equalsIgnoreCase("no-dsb"))
-        {
-            // This is not an appropriate production mode so log
-            // a warning
-            logger.warn("Running without GPS hardware," +
-                    " UTC reconstruction will be impacted.");
-            service = new NullGPSService();
-        }
-        else if(GPS_MODE.equalsIgnoreCase("discover"))
-        {
-            // This is not an appropriate production mode so log
-            // a warning
-            logger.warn("Running in relaxed GPS hardware mode," +
-                    " UTC reconstruction may be impacted.");
-            service = new FailsafeGPSService( new DSBGPSService(),
-                    new NullGPSService());
-        }
-        else
-        {
-            throw new Error("Unknown GPS mode: [" + GPS_MODE + "]");
-        }
+        service = GPSMode.resolve(GPS_MODE_SETTING).initService();
     }
 
 
