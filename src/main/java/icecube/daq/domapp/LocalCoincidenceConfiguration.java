@@ -1,6 +1,9 @@
 package icecube.daq.domapp;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class LocalCoincidenceConfiguration
 {
@@ -15,28 +18,68 @@ public class LocalCoincidenceConfiguration
 	    /**
 	     * No LC required to send WF
 	     */
-		RXNONE,
+		RXNONE((byte)0, "none"),
 		/**
 		 * Either UP or DOWN LC signal will cause WF x-mit
 		 */
-		RXEITHER, 
+		RXEITHER((byte)1, "up-or-down"),
 		/**
 		 * Only state of UP LC signal matters
 		 */
-		RXUP, 
+		RXUP((byte)2, "up"),
 		/**
 		 * Only state of DOWN LC signal matters
 		 */
-		RXDOWN, 
+		RXDOWN((byte)3, "down"),
 		/**
 		 * Need both UP.AND.DOWN LC signals simultaneously
 		 */
-		RXBOTH, 
+		RXBOTH((byte)4, "up-and-down"),
 		/**
 		 * Only send SLC header packets no matter what.
 		 */
-		RXHDRS;
-		public byte asByte() { return (byte) ordinal(); }
+		RXHDRS((byte)5, "headers-only");
+
+		// domapp interface value
+		final byte val;
+
+		// xml config value
+		final String xmlval;
+
+		static Map<String, RxMode> XML_LOOKUP_MAP;
+		static Map<Byte, RxMode> WIRE_VAL_LOOKUP_MAP;
+
+		static {
+			Map<String,RxMode> xmlMap = new ConcurrentHashMap<>();
+			Map<Byte,RxMode> ordinalMap = new ConcurrentHashMap<>();
+			for (RxMode t : RxMode.values()) {
+				xmlMap.put(t.xmlval, t);
+				ordinalMap.put(t.val, t);
+			}
+			XML_LOOKUP_MAP = Collections.unmodifiableMap(xmlMap);
+			WIRE_VAL_LOOKUP_MAP = Collections.unmodifiableMap(ordinalMap);
+		}
+
+		RxMode(byte val, String xmlval)
+		{
+			this.val = val;
+			this.xmlval = xmlval;
+		}
+
+		public byte asByte() { return val; }
+
+
+		public String asXML() { return xmlval; }
+
+		public static RxMode resolve(byte val)
+		{
+			return WIRE_VAL_LOOKUP_MAP.get(val);
+		}
+
+		public static RxMode resolve(String xmlval)
+		{
+			return XML_LOOKUP_MAP.get(xmlval);
+		}
 	}
 
 	public enum Source
