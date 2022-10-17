@@ -29,13 +29,13 @@ import java.util.Properties;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-public class OmicronCMD
+public class OmicronCmd
 {
 
     private static Driver driver = Driver.getInstance();
     private static ArrayList<DataCollector> collectors;
     //private static ByteBuffer drain;
-    private static final Logger logger = Logger.getLogger(OmicronCMD.class);
+    private static final Logger logger = Logger.getLogger(OmicronCmd.class);
     private static final boolean DISABLE_INTERVAL = Boolean.getBoolean("icecube.daq.domapp.datacollector.disable_intervals");
 
     // ext-3 on scube has a block size of 4K.  Buffer 10 blocks
