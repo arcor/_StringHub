@@ -71,7 +71,7 @@ public class RecordSpool implements RecordStore.OrderedWritable
      *                     (typically UTC time in 1/10 nanos)
      * @param maxNumberOfFiles Number of files in the spooling ensemble.
      * @param indexMode Provides the indexing strategy for the spool files.
-     * @throws java.io.IOException An error creating the spool directory or
+     * @throws IOException An error creating the spool directory or
      * accessing the metadata database.
      */
     public RecordSpool(final RecordReader recordReader,
@@ -81,23 +81,48 @@ public class RecordSpool implements RecordStore.OrderedWritable
                        final IndexFactory indexMode)
             throws IOException
     {
+        this(recordReader, orderingField, topDir,"Hitspool", fileInterval,maxNumberOfFiles, indexMode);
+    }
+    /**
+     * Constructor with all parameters.
+     *
+     * @param recordReader Defines the basic record structure.
+     * @param orderingField Defines the field by which the records are ordered,
+     *                      (typically the UTC timestamp in 1/10 nanos).
+     * @param topDir Top-level directory which holds hitspool directory.
+     * @param spoolname Spool file prefix, i.e., the HitSpool of HitSpool-1234.dat
+     * @param fileInterval Range of values spanned by each spool file,
+     *                     (typically UTC time in 1/10 nanos)
+     * @param maxNumberOfFiles Number of files in the spooling ensemble.
+     * @param indexMode Provides the indexing strategy for the spool files.
+     * @throws IOException An error creating the spool directory or
+     * accessing the metadata database.
+     */
+    public RecordSpool(final RecordReader recordReader,
+                        final RecordReader.LongField orderingField,
+                        final File topDir,
+                        final String spoolname,
+                        final long fileInterval, final int maxNumberOfFiles,
+                        final IndexFactory indexMode)
+            throws IOException
+    {
         this.recordReader = recordReader;
         this.orderingField = orderingField;
         this.indexMode = indexMode;
         search = new RangeSearch.LinearSearch(recordReader, orderingField);
 
-        // make sure hitspool directory exists
+        // make sure spool directory exists
         if (topDir == null) {
             throw new IOException("Top directory cannot be null");
         }
-        targetDirectory = new File(topDir, "hitspool");
+        targetDirectory = new File(topDir, spoolname);
         createDirectory(topDir);
         createDirectory(targetDirectory);
 
         try
         {
             files = new FileBundle(recordReader, orderingField, targetDirectory,
-                    fileInterval, maxNumberOfFiles, indexMode);
+                    spoolname, fileInterval, maxNumberOfFiles, indexMode);
         }
         catch (SQLException sqle)
         {
@@ -196,6 +221,8 @@ public class RecordSpool implements RecordStore.OrderedWritable
     {
         // hitspool directory
         private final File directory;
+        private final String spoolname;
+
 
         // Spooling configuration
         private final long fileInterval;
@@ -257,6 +284,7 @@ public class RecordSpool implements RecordStore.OrderedWritable
         FileBundle(final RecordReader recordReader,
                    final RecordReader.LongField orderingField,
                    final File directory,
+                   final String spoolname,
                    long fileInterval,
                    int maxNumberOfFiles,
                    final IndexFactory indexMode) throws SQLException
@@ -264,6 +292,7 @@ public class RecordSpool implements RecordStore.OrderedWritable
             this.recordReader = recordReader;
             this.orderingField = orderingField;
             this.directory = directory;
+            this.spoolname = spoolname;
             this.fileInterval = fileInterval;
             this.maxNumberOfFiles = maxNumberOfFiles;
             this.indexMode = indexMode;
@@ -271,7 +300,7 @@ public class RecordSpool implements RecordStore.OrderedWritable
             this.search =
                     new RangeSearch.LinearSearch(recordReader, orderingField);
 
-            this.metadata = new Metadata(directory);
+            this.metadata = new Metadata(directory, spoolname +  ".db");
         }
 
         /**
@@ -598,14 +627,14 @@ public class RecordSpool implements RecordStore.OrderedWritable
         /**
          * Map File number to file name.
          */
-        private static String getFileName(int num)
+        private String getFileName(int num)
         {
             if (num < 0) {
                 throw new Error("File number cannot be less than zero" +
                         " [" + num + "]");
             }
 
-            return String.format("HitSpool-%d.dat", num);
+            return String.format(spoolname + "-%d.dat", num);
         }
 
     }
