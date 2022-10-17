@@ -66,7 +66,7 @@
               <classifier>omicron</classifier>
               <archive>
                 <manifest>
-                  <mainClass>icecube.daq.cli.commands.OmicronCMD</mainClass>
+                  <mainClass>icecube.daq.cli.commands.OmicronCmd</mainClass>
                   <addClasspath>true</addClasspath>
                   <classpathPrefix>../lib</classpathPrefix>
                 </manifest>
