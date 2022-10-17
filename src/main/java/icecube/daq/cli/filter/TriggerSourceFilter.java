@@ -1,6 +1,6 @@
 package icecube.daq.cli.filter;
 
-import icecube.daq.cli.options.RecordTypeOption;
+import icecube.daq.cli.stream.RecordType;
 import icecube.daq.payload.PayloadException;
 import icecube.daq.performance.binary.record.pdaq.DomHitRecordReader;
 
@@ -52,7 +52,7 @@ public class TriggerSourceFilter implements Filter
     }
 
     @Override
-    public Predicate<ByteBuffer> asPredicate(RecordTypeOption.RecordType recordType)
+    public Predicate<ByteBuffer> asPredicate(RecordType recordType)
     {
 
         if(windowLen > 0)
