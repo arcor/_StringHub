@@ -1,6 +1,7 @@
 package icecube.daq.cli.filter;
 
-import icecube.daq.cli.options.RecordTypeOption;
+import icecube.daq.cli.stream.RecordType;
+import icecube.daq.performance.binary.record.pdaq.DaqBufferRecordReader;
 import icecube.daq.performance.binary.record.pdaq.MonitoringRecordReader;
 import icecube.daq.performance.binary.record.pdaq.SecondBuildRecordReader;
 
@@ -38,7 +39,7 @@ public class MoniFilter
         }
 
         @Override
-        public Predicate<ByteBuffer> asPredicate(RecordTypeOption.RecordType recordType)
+        public Predicate<ByteBuffer> asPredicate(RecordType recordType)
         {
             if( recordType.rr instanceof SecondBuildRecordReader ||
                     recordType.rr instanceof  MonitoringRecordReader.SECONDBUILD_MonitoringRecordReader)
@@ -53,7 +54,7 @@ public class MoniFilter
                     }
                 };
 
-            } else if (recordType.rr instanceof SecondBuildRecordReader ||
+            } else if (recordType.rr instanceof DaqBufferRecordReader ||
                     recordType.rr instanceof  MonitoringRecordReader.PDAQ_MonitoringRecordReader) {
                 return new Predicate<ByteBuffer>()
                 {
@@ -67,7 +68,7 @@ public class MoniFilter
             }
             else
             {
-                throw new Error("Can't apply moni filter to " + recordType.typeName + " records");
+                throw new Error("Can't apply moni filter to " + recordType.keyword + " records");
             }
 
 
