@@ -11,6 +11,7 @@ import org.junit.runners.Parameterized;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -347,6 +348,12 @@ public class RangeSearchTest
         {
             return new RecordReader()
             {
+                @Override
+                public ByteBuffer deserialize(ReadableByteChannel channel) throws IOException
+                {
+                    throw new Error("Not Implemented");
+                }
+
                 @Override
                 public int getLength(final ByteBuffer buffer)
                 {

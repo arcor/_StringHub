@@ -8,6 +8,7 @@ import icecube.daq.performance.binary.store.RecordStore;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ReadableByteChannel;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -134,6 +135,13 @@ public interface RecordGenerator
         {
             return new RecordReader()
             {
+
+                @Override
+                public ByteBuffer deserialize(ReadableByteChannel channel) throws IOException
+                {
+                    throw new Error("Not Implemented");
+                }
+
                 @Override
                 public int getLength(final ByteBuffer buffer)
                 {
@@ -213,6 +221,12 @@ public interface RecordGenerator
             return new RecordReader()
             {
                 @Override
+                public ByteBuffer deserialize(ReadableByteChannel channel) throws IOException
+                {
+                    throw new Error("Not Implemented");
+                }
+
+                @Override
                 public int getLength(final ByteBuffer buffer)
                 {
                     return buffer.getInt(0);
@@ -281,6 +295,12 @@ public interface RecordGenerator
         {
             return new RecordReader()
             {
+                @Override
+                public ByteBuffer deserialize(ReadableByteChannel channel) throws IOException
+                {
+                    throw new Error("Not Implemented");
+                }
+
                 @Override
                 public int getLength(final ByteBuffer buffer)
                 {
@@ -354,6 +374,12 @@ public interface RecordGenerator
         {
             return new RecordReader()
             {
+                @Override
+                public ByteBuffer deserialize(ReadableByteChannel channel) throws IOException
+                {
+                    throw new Error("Not Implemented");
+                }
+
                 @Override
                 public int getLength(final ByteBuffer buffer)
                 {

@@ -17,7 +17,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * uint2:     short-1
  * byte[n]:   data-2, dynamic size
  */
-public class DummyRecord extends LengthPrependedRecordReader
+public class DummyRecord extends LengthPrependedRecordReader._32Bit
         implements UTCRecordReader
 {
 

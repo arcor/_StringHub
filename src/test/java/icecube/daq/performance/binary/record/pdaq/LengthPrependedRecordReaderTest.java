@@ -2,13 +2,19 @@ package icecube.daq.performance.binary.record.pdaq;
 
 import icecube.daq.performance.binary.buffer.RecordBuffer;
 import icecube.daq.performance.binary.buffer.RecordBuffers;
+import icecube.daq.performance.binary.record.RecordReader;
 import icecube.daq.performance.common.BufferContent;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests LengthPrependedRecordReader.java
@@ -16,68 +22,116 @@ import static org.junit.Assert.assertEquals;
 public class LengthPrependedRecordReaderTest
 {
 
-    LengthPrependedRecordReader subject = LengthPrependedRecordReader.instance;
+    static class Case
+    {
+        final RecordReader subject;
+        final ByteBuffer dummy;
+        final int expectedLength;
 
-    /**
-     * A length-prepended record
-     * ------------------------------
-     * | length [uint4]    |  ...   |
-     * -----------------------------
-     */
-    ByteBuffer dummy;
+        Case(RecordReader subject, ByteBuffer dummy, int expectedLength)
+        {
+            this.subject = subject;
+            this.dummy = dummy;
+            this.expectedLength = expectedLength;
+        }
+    }
 
-    int DUMMY_LENGTH = 2435;
+
+    Case[] cases;
 
     @Before
     public void setUp() throws Exception
     {
-        dummy = ByteBuffer.allocate(DUMMY_LENGTH);
-        dummy.putInt(DUMMY_LENGTH);
-        while(dummy.remaining() > 0)
+        short DUMMY_LENGTH = 2345;
+        ByteBuffer dummy16 = ByteBuffer.allocate(DUMMY_LENGTH);
+        dummy16.putShort(DUMMY_LENGTH);
+        while(dummy16.remaining() > 0)
         {
-            dummy.put((byte) (Math.random() * 256));
+            dummy16.put((byte) (Math.random() * 256));
         }
-        dummy.flip();
+        dummy16.flip();
+
+        ByteBuffer dummy32 = ByteBuffer.allocate(DUMMY_LENGTH);
+        dummy32.putInt(DUMMY_LENGTH);
+        while(dummy32.remaining() > 0)
+        {
+            dummy32.put((byte) (Math.random() * 256));
+        }
+        dummy32.flip();
+
+        cases = new Case[]
+                {
+                        new Case(LengthPrependedRecordReader._16Bit.instance, dummy16, DUMMY_LENGTH),
+                        new Case(LengthPrependedRecordReader._32Bit.instance, dummy32, DUMMY_LENGTH)
+                };
     }
+
+
+    @Test
+    public void testDeserialize() throws IOException
+    {
+        for(Case c: cases)
+        {
+            ReadableByteChannel channel = Channels.newChannel(new ByteArrayInputStream(c.dummy.array()));
+            ByteBuffer result = c.subject.deserialize(channel);
+            assertTrue(c.dummy.equals(result));
+
+            assertEquals(c.expectedLength, c.subject.getLength(result));
+        }
+    }
+
 
     @Test
     public void testByteBufferNoOffset()
     {
-        assertEquals(DUMMY_LENGTH, subject.getLength(dummy));
+        for(Case c: cases)
+        {
+            assertEquals(c.expectedLength, c.subject.getLength(c.dummy));
+
+        }
     }
 
     @Test
     public void testByteBufferWithOffset()
     {
-        int OFFSET = 23423;
-        ByteBuffer buf = ByteBuffer.allocate(DUMMY_LENGTH + OFFSET);
-        buf.position(OFFSET);
-        buf.put(dummy);
-        buf.flip();
+        for(Case c: cases)
+        {
+            int OFFSET = 23423;
+            ByteBuffer buf = ByteBuffer.allocate(c.expectedLength + OFFSET);
+            buf.position(OFFSET);
+            buf.put(c.dummy);
+            buf.flip();
 
-        assertEquals(DUMMY_LENGTH, subject.getLength(buf, OFFSET));
+            assertEquals(c.expectedLength, c.subject.getLength(buf, OFFSET));
+        }
     }
 
     @Test
     public void testRecordBufferNoOffset()
     {
-        RecordBuffer rb =
-                RecordBuffers.wrap(dummy, BufferContent.ZERO_TO_CAPACITY);
-        assertEquals(DUMMY_LENGTH, subject.getLength(rb, 0));
+        for(Case c: cases)
+        {
+            RecordBuffer rb =
+                    RecordBuffers.wrap(c.dummy, BufferContent.ZERO_TO_CAPACITY);
+            assertEquals(c.expectedLength, c.subject.getLength(rb, 0));
+        }
     }
 
     @Test
     public void testRecordBufferWithOffset()
     {
-        int OFFSET = 23423;
-        ByteBuffer buf = ByteBuffer.allocate(DUMMY_LENGTH + OFFSET);
-        buf.position(OFFSET);
-        buf.put(dummy);
-        buf.flip();
-        RecordBuffer rb =
-                RecordBuffers.wrap(buf, BufferContent.ZERO_TO_CAPACITY);
+        for(Case c: cases)
+        {
+            int OFFSET = 23423;
+            ByteBuffer buf = ByteBuffer.allocate(c.expectedLength + OFFSET);
+            buf.position(OFFSET);
+            buf.put(c.dummy);
+            buf.flip();
+            RecordBuffer rb =
+                    RecordBuffers.wrap(buf, BufferContent.ZERO_TO_CAPACITY);
 
-        assertEquals(DUMMY_LENGTH, subject.getLength(rb, OFFSET));
+            assertEquals(c.expectedLength, c.subject.getLength(rb, OFFSET));
+        }
     }
 
 }
