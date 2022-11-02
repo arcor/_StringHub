@@ -18,12 +18,42 @@ import java.util.function.Predicate;
 public class TriggerSourceFilter implements Filter
 {
 
-    private final short targetSource;
+    private final short targetSourceBit;
     private final long windowLen;
 
-    public TriggerSourceFilter(short targetSource, long windowLen)
+    /**
+     * Trigger source bits as defined in DOMAPP_CPU_FPGA_Interface document
+     *
+     * -------------------------------------------------
+     * Table 3: Trigger Source register
+     *
+     * Bit Function
+     * 0 SPE discriminator
+     * 1 MPE discriminator
+     * 2 CPU forced
+     * 3 Frontend pulser
+     * 4 On board LED
+     * 5 Flasher board
+     * 6 Frontend R2R
+     * 7 ATWD R2Rmv
+     * 8 Local coincidence UP
+     * 9 Local coincidence DOWN
+     * -------------------------------------------------
+     */
+    public static short SPE = 0x1;
+    public static short MPE = 0x1 << 1;
+    public static short CPU = 0x1 << 2;
+    public static short PULSER = 0x1 << 3;
+    public static short MB_LED = 0x1 << 4;
+    public static short FLASHER = 0x1 << 5;
+    public static short FRONT_END_R2R = 0x1 << 6;
+    public static short ATWD_R2RMV = 0x1 << 7;
+    public static short LC_UP = 0x1 << 8;
+    public static short LC_DOWN = 0x1 << 9;
+
+    public TriggerSourceFilter(short targetSourceBit, long windowLen)
     {
-        this.targetSource = targetSource;
+        this.targetSourceBit = targetSourceBit;
         this.windowLen = windowLen;
     }
 
@@ -48,7 +78,7 @@ public class TriggerSourceFilter implements Filter
     public String describe()
     {
         return String.format("selects records from a dom for [%d] 1e-10 seconds after a hit with" +
-                "trigger source %d", windowLen, targetSource);
+                "trigger source bit %d set", windowLen, targetSourceBit);
     }
 
     @Override
@@ -67,7 +97,7 @@ public class TriggerSourceFilter implements Filter
 
                         short triggerSource = rr.getTriggerFlag(byteBuffer);
 
-                        return triggerSource == targetSource;
+                        return (triggerSource & targetSourceBit) == targetSourceBit;
                     } catch (PayloadException e) {
                         throw new Error(e);
                     }
@@ -92,7 +122,7 @@ public class TriggerSourceFilter implements Filter
                         long hitTime = rr.getUTC(byteBuffer);
                         Window curWindow = activeWindows.get(mbid);
 
-                        boolean isTriggered = triggerSource == targetSource;
+                        boolean isTriggered = triggerSource == targetSourceBit;
 
                         // create, update or replace current window
                         if(isTriggered)
