@@ -22,6 +22,10 @@ public final class ExtendedMode
     public static String ENFORCE_OVERRIDE_KEY = "icecube.daq.domapp.enforceExtendedModeSettings";
     private static boolean enforce = Boolean.parseBoolean(System.getProperty(ENFORCE_OVERRIDE_KEY, "true"));
 
+
+    public static String SUPPRESS_EXTENDED_MODE_KEY = "icecube.daq.domapp.suppressExtendedModeSettings";
+    private static boolean suppress = Boolean.parseBoolean(System.getProperty(SUPPRESS_EXTENDED_MODE_KEY, "false"));
+
     public static void enableExtendedMode()
     {
         logger.warn("Enabling Extended Mode");
@@ -36,5 +40,23 @@ public final class ExtendedMode
     public static boolean enforce()
     {
         return enforce;
+    }
+
+
+    /**
+     * A transitional mechanism to enable the Basilisk release to operate with
+     * either DOM_MB_450 or a prior version if a flag is set.
+     *
+     * If the legacy mode flag is set, the additional "extended mode" configuration
+     * options introduced in DOM_MB_450 will be ignored.
+     *
+     * This should be removed after some period of time as backward compatible
+     * configuration management is not easy and presents pitfalls.
+     *
+     * TODO: Remove
+     */
+    public static boolean suppressExtendedModeFeatures()
+    {
+        return suppress;
     }
 }

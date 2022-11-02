@@ -125,45 +125,53 @@ public class DataAcquisition
             long configT0 = System.currentTimeMillis();
 
 
-            // Proactively enforce extended mode (Domapp should duplicate enforcement)
-            HashMap<String, String> violations = new HashMap<>();
-            final boolean extendedMode = ExtendedMode.isExtendedModeEnable();
-            if(!extendedMode && config.requiresExtendedMode(violations))
+            //todo remove suppression feature
+            if(!ExtendedMode.suppressExtendedModeFeatures())
             {
-                StringBuilder sb = new StringBuilder();
-                for(Map.Entry<String, String> v : violations.entrySet())
+                // Proactively enforce extended mode (Domapp should duplicate enforcement)
+                HashMap<String, String> violations = new HashMap<>();
+                final boolean extendedMode = ExtendedMode.isExtendedModeEnable();
+                if(!extendedMode && config.requiresExtendedMode(violations))
                 {
-                    sb.append(v.getKey()).append(":").append(v.getValue()).append("\n");
+                    StringBuilder sb = new StringBuilder();
+                    for(Map.Entry<String, String> v : violations.entrySet())
+                    {
+                        sb.append(v.getKey()).append(":").append(v.getValue()).append("\n");
+                    }
+
+                    if(ExtendedMode.enforce())
+                    {
+                        String msg = String.format("DOM config for %s requires extended mode flag, set %s=false to override%n%s",
+                                id, ExtendedMode.ENFORCE_OVERRIDE_KEY, sb.toString());
+
+                        throw new AcquisitionError(msg);
+                    }
+                    else
+                    {
+
+                        String msg = String.format("DOM config for %s requires extended mode flag, enforcement overridden by %s=false," +
+                                        " will attempt to configure DOM%n%s",
+                                id, ExtendedMode.ENFORCE_OVERRIDE_KEY, sb.toString());
+
+                        logger.error(msg);
+                    }
                 }
 
-                if(ExtendedMode.enforce())
+                if(extendedMode)
                 {
-                    String msg = String.format("DOM config for %s requires extended mode flag, set %s=false to override%n%s",
-                            id, ExtendedMode.ENFORCE_OVERRIDE_KEY, sb.toString());
-
-                    throw new AcquisitionError(msg);
+                    logger.warn("Enabling Extended Mode on " + this.id);
+                    app.enableExtendedMode();
                 }
                 else
                 {
-
-                    String msg = String.format("DOM config for %s requires extended mode flag, enforcement overridden by %s=false," +
-                                    " will attempt to configure DOM%n%s",
-                            id, ExtendedMode.ENFORCE_OVERRIDE_KEY, sb.toString());
-
-                    logger.error(msg);
+                    app.disableExtendedMode();
                 }
-            }
 
-            if(extendedMode)
-            {
-                logger.warn("Enabling Extended Mode on " + this.id);
-                app.enableExtendedMode();
             }
             else
             {
-                app.disableExtendedMode();
+                logger.warn("Suppressing Extended Mode configurations");
             }
-
 
             app.setMoniIntervals(
                     config.getHardwareMonitorInterval(),
@@ -281,19 +289,27 @@ public class DataAcquisition
                 logger.warn("Unable to configure chargestamp histogramming");
             }
 
-            app.setDAQMode(config.getDaqMode());
-            app.setAltTriggerMode(config.getAltTriggerMode());
-            app.setSelfLCMode(config.getSelfLC().getMode());
-            app.setSelfLCWindow(config.getSelfLC().getWindow());
-
-            boolean mainboardLEDOn = config.getMainboardLEDOn();
-            if(mainboardLEDOn)
+            //todo remove suppression feature
+            if(!ExtendedMode.suppressExtendedModeFeatures())
             {
-                app.mainboardLEDOn();
+                app.setDAQMode(config.getDaqMode());
+                app.setAltTriggerMode(config.getAltTriggerMode());
+                app.setSelfLCMode(config.getSelfLC().getMode());
+                app.setSelfLCWindow(config.getSelfLC().getWindow());
+
+                boolean mainboardLEDOn = config.getMainboardLEDOn();
+                if(mainboardLEDOn)
+                {
+                    app.mainboardLEDOn();
+                }
+                else
+                {
+                    app.mainboardLEDOff();
+                }
             }
             else
             {
-                app.mainboardLEDOff();
+                logger.warn("Suppressing Extended Mode configurations");
             }
 
             if (logger.isDebugEnabled()) {

@@ -502,28 +502,29 @@ public class DataCollector extends AbstractDataCollector
                     if(extendedModeFlasherConfig != null)
                     {
 
-                        // Proactively enforce extended mode (Domapp should duplicated enforcement)
-                        if(ExtendedMode.isExtendedModeEnable())
-                        {
-                            logger.warn("Running with flashers and HV enabled for " + mbid);
-                            runStartUT = dataAcquisition.doBeginFlasherRun(extendedModeFlasherConfig);
-                        }
-                        else if(ExtendedMode.enforce())
-                        {
-                            String msg = String.format("Running with flashers and HV enabled for %s requires extended mode flag, set %s=false to override%n",
-                                    mbid, ExtendedMode.ENFORCE_OVERRIDE_KEY);
+                        //todo remove suppression feature
+                        if (!ExtendedMode.suppressExtendedModeFeatures()) {
+                            // Proactively enforce extended mode (Domapp should duplicated enforcement)
+                            if (ExtendedMode.isExtendedModeEnable()) {
+                                logger.warn("Running with flashers and HV enabled for " + mbid);
+                                runStartUT = dataAcquisition.doBeginFlasherRun(extendedModeFlasherConfig);
+                            } else if (ExtendedMode.enforce()) {
+                                String msg = String.format("Running with flashers and HV enabled for %s requires extended mode flag, set %s=false to override%n",
+                                        mbid, ExtendedMode.ENFORCE_OVERRIDE_KEY);
 
-                            throw new AcquisitionError(msg);
-                        }
-                        else
-                        {
-                            String msg = String.format("Running with flashers and HV enabled for %s requires extended mode flag, enforcement overridden by %s=false," +
-                                            " will attempt to run with flashers enabled DOM%n",
-                                    mbid, ExtendedMode.ENFORCE_OVERRIDE_KEY);
+                                throw new AcquisitionError(msg);
+                            } else {
+                                String msg = String.format("Running with flashers and HV enabled for %s requires extended mode flag, enforcement overridden by %s=false," +
+                                                " will attempt to run with flashers enabled DOM%n",
+                                        mbid, ExtendedMode.ENFORCE_OVERRIDE_KEY);
 
-                            logger.error(msg);
-                            logger.warn("Running with flashers and HV enabled for " + mbid);
-                            runStartUT = dataAcquisition.doBeginFlasherRun(extendedModeFlasherConfig);
+                                logger.error(msg);
+                                logger.warn("Running with flashers and HV enabled for " + mbid);
+                                runStartUT = dataAcquisition.doBeginFlasherRun(extendedModeFlasherConfig);
+                            }
+                        }
+                        else {
+                            logger.warn("Suppressing Extended Mode configurations");
                         }
 
                     }
