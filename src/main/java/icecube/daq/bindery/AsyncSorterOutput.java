@@ -138,9 +138,13 @@ public class AsyncSorterOutput implements BufferConsumer, Runnable
                 if(buf.getLong(24) == Long.MAX_VALUE)
                 {
                     running = false;
+                    delegate.endOfStream(buf.getLong(8));
                 }
-
-                delegate.consume(buf);
+                else
+                {
+                    // todo use record reader
+                    delegate.consume(buf);
+                }
             }
         }
         catch (InterruptedException ie)
