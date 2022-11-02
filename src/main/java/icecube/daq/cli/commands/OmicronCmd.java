@@ -67,7 +67,7 @@ import java.util.stream.Collectors;
                 "            --flasher dom:64a8ac5299b1,brightness:1,width:2,delay:3,mask:4,rate:5 \\%n" +
                 "            --flasher dom:Egg_Nebula,brightness:1,width:2,delay:3,mask:0x3,rate:5%n" +
                 "%n" +
-                "    Capture MainboardLED trigger type events into an event file:%n" +
+                "    Capture MainboardLED trigger source events into an event file:%n" +
                 "%n" +
                 "    omicron --dom-config spts-ichub29.xml -l 15m -o data --extended-mode=true \\%n" +
                 "            --event-filter triggersource:0x10:1000000 --event-output LEDEvents \\%n"
@@ -332,6 +332,8 @@ public class OmicronCmd implements Callable<Integer>
             Filter filter = options.extractFilter.get();
             Predicate<ByteBuffer> predicate = filter.asPredicate(RecordType.PDAQ_HITS);
 
+            logger.info("Installing event filter: " + filter.describe());
+
 
             hitsChan = new BufferConsumerFork(hitsChan, new BufferConsumer()
             {
@@ -473,7 +475,6 @@ public class OmicronCmd implements Callable<Integer>
 
         diagnosticTraceOption.startTrace(collectors);
 
-//        logAfterpulseSettings("idle");
 
         logger.info("Sending CONFIGURE signal to DataCollectors");
 
@@ -533,7 +534,6 @@ public class OmicronCmd implements Callable<Integer>
         }
 
 
-        //logAfterpulseSettings("configured");
 
 
         // apply flasher configs if desired (requires EXTENDED MODE to work)
@@ -551,7 +551,7 @@ public class OmicronCmd implements Callable<Integer>
                 FlasherboardConfiguration fbc = map.get(dc.getMainboardId());
                 logger.warn( String.format("Applying a flasher configuration to dom:%s (%s) : %s", dc.getMainboardId(),
                         domName(Long.parseLong(dc.getMainboardId(), 16)), fbc.toString()));
-                dc.setFlasherConfig(fbc);
+                dc.extendedModeFlasherConfig = fbc;
             }
         }
 
@@ -589,7 +589,6 @@ public class OmicronCmd implements Callable<Integer>
                 Thread.sleep(1000);
             }
 
-//            logAfterpulseSettings("run stopped");
 
             for (DataCollector dc : collectors) {
                 while (dc.isAlive() && !dc.getRunLevel().equals(RunLevel.CONFIGURED)) Thread.sleep(100);
@@ -697,7 +696,9 @@ public class OmicronCmd implements Callable<Integer>
                 switch (output.toLowerCase())
                 {
                     case "stdout": dst=System.out;
-                    default:dst = new PrintStream(new BufferedOutputStream(new FileOutputStream(output)));
+                        break;
+                    default:
+                        dst = new PrintStream(new BufferedOutputStream(new FileOutputStream(output, true)));
                 }
                 trace = new DiagnosticTrace(period, 30, dst);
                 trace.addTimeContent();
@@ -763,7 +764,6 @@ public class OmicronCmd implements Callable<Integer>
     {
         public static void main(String[] args)
         {
-//            OmicronCmd.main(new String[0]);
             OmicronCmd.main(new String[]{"--help"});
         }
     }
