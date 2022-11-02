@@ -112,7 +112,7 @@ public class FilterOption implements  CommandLine.ITypeConverter<Filter>
             Filter resolve(String value)
             {
                 String[] tokens = value.split(":");
-                short val = Short.parseShort(tokens[0]);
+                short val = Short.decode(tokens[0]);
                 long window = 0;
                 if(tokens.length == 2)
                 {
