@@ -54,7 +54,7 @@ public class RecordSpoolTest
         List<File> tempFiles = new ArrayList<>();
 
         @After
-        public void tearDown() throws IOException
+        public void baseTearDown() throws IOException
         {
             for(File file : tempFiles)
             {
@@ -241,7 +241,6 @@ public class RecordSpoolTest
                     dataType.orderingField(), (1024*1024), indexMode);
         }
 
-        @Override
         @After
         public void tearDown()
         {
@@ -429,11 +428,10 @@ public class RecordSpoolTest
                     dataType.orderingField(), (1024*1024), indexMode);
         }
 
-        @Override
         @After
         public void tearDown()
         {
-            appender.assertNoLogMessages();
+          appender.assertNoLogMessages();
         }
 
         @Test

@@ -81,7 +81,33 @@ public class RecordSpool implements RecordStore.OrderedWritable
                        final IndexFactory indexMode)
             throws IOException
     {
-        this(recordReader, orderingField, topDir,"Hitspool", fileInterval,maxNumberOfFiles, indexMode);
+        this(recordReader, orderingField, topDir,"hitspool", "HitSpool", fileInterval,maxNumberOfFiles, indexMode);
+    }
+
+    /**
+     * Constructor with all parameters.
+     *
+     * @param recordReader Defines the basic record structure.
+     * @param orderingField Defines the field by which the records are ordered,
+     *                      (typically the UTC timestamp in 1/10 nanos).
+     * @param topDir Top-level directory which holds hitspool directory.
+     * @param spoolname Spool directory and database name, i.e., the ../hitspool/hitspool.db
+     * @param fileInterval Range of values spanned by each spool file,
+     *                     (typically UTC time in 1/10 nanos)
+     * @param maxNumberOfFiles Number of files in the spooling ensemble.
+     * @param indexMode Provides the indexing strategy for the spool files.
+     * @throws IOException An error creating the spool directory or
+     * accessing the metadata database.
+     */
+    public RecordSpool(final RecordReader recordReader,
+                       final RecordReader.LongField orderingField,
+                       final File topDir,
+                       final String spoolname,
+                       final long fileInterval, final int maxNumberOfFiles,
+                       final IndexFactory indexMode)
+            throws IOException
+    {
+        this(recordReader, orderingField, topDir, spoolname, spoolname, fileInterval,maxNumberOfFiles, indexMode);
     }
     /**
      * Constructor with all parameters.
@@ -90,7 +116,8 @@ public class RecordSpool implements RecordStore.OrderedWritable
      * @param orderingField Defines the field by which the records are ordered,
      *                      (typically the UTC timestamp in 1/10 nanos).
      * @param topDir Top-level directory which holds hitspool directory.
-     * @param spoolname Spool file prefix, i.e., the HitSpool of HitSpool-1234.dat
+     * @param spoolname Spool directory and database name, i.e., the ../hitspool/hitspool.db
+     * @param dataStream Spool file prefix, i.e., the HitSpool of HitSpool-1234.dat
      * @param fileInterval Range of values spanned by each spool file,
      *                     (typically UTC time in 1/10 nanos)
      * @param maxNumberOfFiles Number of files in the spooling ensemble.
@@ -101,7 +128,8 @@ public class RecordSpool implements RecordStore.OrderedWritable
     public RecordSpool(final RecordReader recordReader,
                         final RecordReader.LongField orderingField,
                         final File topDir,
-                        final String spoolname,
+                       final String spoolname,
+                       final String dataStream,
                         final long fileInterval, final int maxNumberOfFiles,
                         final IndexFactory indexMode)
             throws IOException
@@ -122,7 +150,7 @@ public class RecordSpool implements RecordStore.OrderedWritable
         try
         {
             files = new FileBundle(recordReader, orderingField, targetDirectory,
-                    spoolname, fileInterval, maxNumberOfFiles, indexMode);
+                    spoolname, dataStream, fileInterval, maxNumberOfFiles, indexMode);
         }
         catch (SQLException sqle)
         {
@@ -223,6 +251,9 @@ public class RecordSpool implements RecordStore.OrderedWritable
         private final File directory;
         private final String spoolname;
 
+        // hitspool file names
+        private final String dataStream;
+
 
         // Spooling configuration
         private final long fileInterval;
@@ -285,6 +316,7 @@ public class RecordSpool implements RecordStore.OrderedWritable
                    final RecordReader.LongField orderingField,
                    final File directory,
                    final String spoolname,
+                   final String dataStream,
                    long fileInterval,
                    int maxNumberOfFiles,
                    final IndexFactory indexMode) throws SQLException
@@ -293,6 +325,7 @@ public class RecordSpool implements RecordStore.OrderedWritable
             this.orderingField = orderingField;
             this.directory = directory;
             this.spoolname = spoolname;
+            this.dataStream = dataStream;
             this.fileInterval = fileInterval;
             this.maxNumberOfFiles = maxNumberOfFiles;
             this.indexMode = indexMode;
@@ -634,7 +667,7 @@ public class RecordSpool implements RecordStore.OrderedWritable
                         " [" + num + "]");
             }
 
-            return String.format(spoolname + "-%d.dat", num);
+            return String.format(dataStream + "-%d.dat", num);
         }
 
     }
