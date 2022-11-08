@@ -98,9 +98,10 @@ public abstract class DomHitRecordReader extends DaqBufferRecordReader
             case DOMHitFactory.TYPE_ENG_HIT:
                 return EngineeringHitRecordReader.instance;
             case DOMHitFactory.TYPE_DELTA_HIT:
+            case DOMHitFactory.TYPE_DELTA_PAYLOAD:
                 return DeltaCompressedHitRecordReader.instance;
             default:
-                throw new PayloadException("Unsuported type " + typeId);
+                throw new PayloadException("Unsupported type " + typeId);
         }
     }
 
