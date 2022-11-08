@@ -1,6 +1,7 @@
 package icecube.daq.cli.options;
 
 import icecube.daq.util.DOMInfo;
+import icecube.daq.util.LocatePDAQ;
 import org.apache.log4j.BasicConfigurator;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,6 +21,10 @@ public class DomOptionTest
     public void setup()
     {
         BasicConfigurator.configure();
+
+        // prior tests may have set the pdaq config directory
+        // to a test location
+        LocatePDAQ.clearCache();
     }
 
     @Test

@@ -44,7 +44,8 @@ public class DomResolver
             File configDirectory = LocatePDAQ.findConfigDirectory();
 
             sourceLocation = configDirectory.getAbsolutePath().concat("/default_dom_geometry.xml");
-            return DOMRegistryFactory.load();
+            logger.info("Loading DOM registry from " + sourceLocation);
+            return DOMRegistryFactory.load(sourceLocation);
         } catch (Throwable th) {
             logger.warn("could not load default-dom-geometry.xml from environment: " + th.getMessage());
         }

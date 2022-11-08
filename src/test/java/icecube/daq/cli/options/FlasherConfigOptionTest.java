@@ -2,6 +2,8 @@ package icecube.daq.cli.options;
 
 import icecube.daq.cli.options.FlasherConfigOption.FlasherConfigCLIConverter;
 import icecube.daq.util.FlasherboardConfiguration;
+import icecube.daq.util.LocatePDAQ;
+import org.junit.Before;
 import org.junit.Test;
 import picocli.CommandLine;
 
@@ -11,6 +13,14 @@ import static org.junit.Assert.fail;
 public class FlasherConfigOptionTest
 {
     FlasherConfigCLIConverter subject = new FlasherConfigCLIConverter();
+
+    @Before
+    public void before()
+    {
+        // prior tests may have set the pdaq config directory
+        // to a test location
+        LocatePDAQ.clearCache();
+    }
 
     @Test
     public void testConstruction()
